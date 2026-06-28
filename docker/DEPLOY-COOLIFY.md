@@ -29,6 +29,17 @@ DB_SSLMODE=disable
 
 Jangan pakai `localhost`. Jangan paste full URL ke `DB_HOST` — hanya hostname.
 
+## HTTPS / mixed content
+
+Di belakang proxy Coolify, set:
+
+```env
+APP_URL=https://opswiki.ocnetworks.web.id
+SAAS_CENTRAL_DOMAIN=opswiki.ocnetworks.web.id
+```
+
+`APP_URL` **harus** `https://`, bukan `http://`. Setelah ubah env, redeploy (config di-cache saat production boot).
+
 ## Alur deploy (data tetap aman)
 
 ```text

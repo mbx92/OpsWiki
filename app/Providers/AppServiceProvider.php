@@ -8,6 +8,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -36,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureTrustedUrls();
         $this->configureAuthRateLimiting();
 
         Vite::prefetch(concurrency: 3);
@@ -68,6 +70,15 @@ class AppServiceProvider extends ServiceProvider
 
         if (Schema::hasTable('settings')) {
             app(MinioArchiveService::class)->registerDisk();
+        }
+    }
+
+    private function configureTrustedUrls(): void
+    {
+        $appUrl = (string) config('app.url');
+
+        if (str_starts_with($appUrl, 'https://')) {
+            URL::forceScheme('https');
         }
     }
 
