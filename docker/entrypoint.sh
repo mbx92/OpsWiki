@@ -10,6 +10,13 @@ if [ -z "$APP_KEY" ]; then
     exit 1
 fi
 
+if ! php -r "require 'vendor/autoload.php';" 2>/dev/null; then
+    echo "[opswiki] ERROR: PHP does not meet Composer requirements."
+    php -v
+    php -r "require 'vendor/autoload.php';" 2>&1 || true
+    exit 1
+fi
+
 # Non-destructive migrations only — never migrate:fresh / migrate:refresh
 echo "[opswiki] Waiting for database (${DB_HOST:-unknown})..."
 TRIES=30

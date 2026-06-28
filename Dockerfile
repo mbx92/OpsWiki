@@ -43,7 +43,7 @@ RUN npm run build
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM php:8.3-fpm-bookworm
+FROM php:8.4-fpm-bookworm
 
 LABEL org.opencontainers.image.title="OpsWiki"
 LABEL org.opencontainers.image.description="Technical knowledge base SaaS"
