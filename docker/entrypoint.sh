@@ -22,7 +22,11 @@ while [ "$TRIES" -gt 0 ]; do
 done
 
 if ! php artisan migrate:status > /dev/null 2>&1; then
-    echo "[opswiki] ERROR: Cannot connect to database. Check DB_HOST and credentials in Coolify."
+    echo "[opswiki] ERROR: Cannot connect to database."
+    echo "[opswiki]   DB_HOST=${DB_HOST:-<empty>} DB_PORT=${DB_PORT:-5432} DB_DATABASE=${DB_DATABASE:-<empty>} DB_USERNAME=${DB_USERNAME:-<empty>}"
+    echo "[opswiki]   Pastikan di Coolify: Advanced → Connect to Predefined Network = ON"
+    echo "[opswiki]   DB_HOST = hostname internal Postgres (bukan URL publik / bukan localhost)"
+    php artisan db:show 2>&1 || true
     exit 1
 fi
 

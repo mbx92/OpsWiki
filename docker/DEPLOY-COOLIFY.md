@@ -4,16 +4,30 @@
 
 ## Setup di Coolify
 
-1. Buat **PostgreSQL** di Coolify (resource terpisah) — catat hostname internal, user, password, database
-2. Buat **Docker Compose** → connect repo [github.com/mbx92/OpsWiki](https://github.com/mbx92/OpsWiki)
-3. Copy env dari `.env.coolify.example` ke **Environment Variables**
-4. Set `DB_HOST` ke hostname Postgres dari Coolify (bukan `localhost`)
-5. Link / attach database ke compose stack jika Coolify menawarkan opsi tersebut (supaya satu network)
-6. Deploy — hanya service **app** yang di-build; tidak ada Postgres di `docker-compose.yml`
+1. Buat **PostgreSQL** di Coolify (resource terpisah)
+2. Buka Postgres → **Internal URL** → salin **hostname container** (mis. `m2a81yq3ad7hvelheztfqywy`)
+3. Buat **Docker Compose** → connect repo [github.com/mbx92/OpsWiki](https://github.com/mbx92/OpsWiki)
+4. **Application → Advanced → aktifkan `Connect to Predefined Network`** (wajib)
+5. Copy env dari `.env.coolify.example` → set `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` **sama persis** dengan Postgres Coolify
+6. Deploy
 
-**Port:** app di dalam container listen di **80** (Nginx). Di Coolify / compose: `APP_PORT=8009` → mapping `8009:80`.
+`docker-compose.yml` sudah join network `coolify` (external). Tanpa langkah 4, `DB_HOST` benar pun tetap **connection refused**.
 
-`docker-compose.yml` **tidak** mendefinisikan network atau service Postgres baru.
+**Port:** internal container **80**, publik `APP_PORT=8009` → `8009:80`.
+
+## Env database (contoh)
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=m2a81yq3ad7hvelheztfqywy
+DB_PORT=5432
+DB_DATABASE=postgres
+DB_USERNAME=postgres
+DB_PASSWORD=<dari Coolify Postgres>
+DB_SSLMODE=disable
+```
+
+Jangan pakai `localhost`. Jangan paste full URL ke `DB_HOST` — hanya hostname.
 
 ## Alur deploy (data tetap aman)
 
@@ -61,8 +75,12 @@ Login: `https://domain-anda/login` → **Platform Admin**
 
 ## Troubleshooting
 
-**Cannot connect to database:** `DB_HOST` harus hostname **internal** Docker Coolify, bukan IP publik.
+**Cannot connect to database:**
+1. Aktifkan **Connect to Predefined Network** di Advanced
+2. `DB_HOST` = hostname internal (dari Internal URL Postgres), bukan `localhost` / IP publik
+3. User, password, database name harus match resource Postgres Coolify
+4. Cek dari server: `docker network inspect coolify` — container app & postgres harus ada di network yang sama
 
-**Migration gagal:** pastikan database sudah dibuat dan user punya hak CREATE/ALTER.
+**Migration gagal:** user Postgres perlu hak CREATE/ALTER pada database.
 
 **APP_KEY missing:** container exit — set di Coolify env.

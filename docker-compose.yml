@@ -1,12 +1,14 @@
 # Coolify — OpsWiki (app only)
 #
-# PostgreSQL pakai instance yang sudah ada di Coolify.
-# Set DB_HOST / DB_* di Environment Variables Coolify (hostname internal DB).
+# PostgreSQL = resource terpisah di Coolify (hostname internal, mis. m2a81yq3ad7hvelheztfqywy)
 #
-# Alur deploy (data tetap aman):
-# - entrypoint: php artisan migrate --force (hanya migration baru)
-# - opswiki:bootstrap (seed sekali jika plans belum ada)
-# - Redeploy tidak reset database
+# WAJIB di Coolify → Application → Advanced:
+#   ✓ Connect to Predefined Network
+# Tanpa ini, container app TIDAK bisa reach database meski DB_HOST benar.
+#
+# Alur deploy:
+# - migrate --force (data tetap ada)
+# - opswiki:bootstrap (sekali, jika plans kosong)
 
 services:
   app:
@@ -14,9 +16,10 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    # Host 8009 → container internal port 80 (Nginx)
     ports:
       - "${APP_PORT:-8009}:80"
+    networks:
+      - coolify
     environment:
       APP_NAME: ${APP_NAME:-OpsWiki}
       APP_ENV: ${APP_ENV:-production}
@@ -31,6 +34,8 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
+      DB_URL: ${DATABASE_URL:-${DB_URL:-}}
       SESSION_DRIVER: ${SESSION_DRIVER:-database}
       SESSION_LIFETIME: ${SESSION_LIFETIME:-120}
       SESSION_ENCRYPT: ${SESSION_ENCRYPT:-true}
@@ -71,6 +76,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 120s
+
+networks:
+  coolify:
+    external: true
 
 volumes:
   opswiki_storage:
