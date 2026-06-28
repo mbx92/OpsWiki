@@ -16,8 +16,8 @@ RUN composer install \
     --optimize-autoloader \
     --no-scripts
 
-COPY . .
-RUN composer dump-autoload --optimize
+# Jangan jalankan dump-autoload / artisan di sini — image composer tidak punya
+# driver DB, dan package:discover akan boot Laravel (butuh pgsql/sqlite).
 
 # -----------------------------------------------------------------------------
 # Frontend assets

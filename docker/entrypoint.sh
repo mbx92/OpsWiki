@@ -29,6 +29,8 @@ fi
 echo "[opswiki] Running pending migrations (data preserved)..."
 php artisan migrate --force
 
+php artisan package:discover --ansi 2>/dev/null || true
+
 echo "[opswiki] Bootstrap seeder (first deploy only)..."
 php artisan opswiki:bootstrap
 
