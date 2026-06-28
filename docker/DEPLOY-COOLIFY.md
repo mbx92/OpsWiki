@@ -11,6 +11,8 @@
 5. Link / attach database ke compose stack jika Coolify menawarkan opsi tersebut (supaya satu network)
 6. Deploy — hanya service **app** yang di-build; tidak ada Postgres di `docker-compose.yml`
 
+**Port:** app di dalam container listen di **80** (Nginx). Di Coolify / compose: `APP_PORT=8009` → mapping `8009:80`.
+
 `docker-compose.yml` **tidak** mendefinisikan network atau service Postgres baru.
 
 ## Alur deploy (data tetap aman)

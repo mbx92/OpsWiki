@@ -14,8 +14,9 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    expose:
-      - "8009"
+    # Host 8009 → container internal port 80 (Nginx)
+    ports:
+      - "${APP_PORT:-8009}:80"
     environment:
       APP_NAME: ${APP_NAME:-OpsWiki}
       APP_ENV: ${APP_ENV:-production}
