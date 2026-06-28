@@ -1,23 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # -----------------------------------------------------------------------------
-# Frontend assets
-# -----------------------------------------------------------------------------
-FROM node:22-bookworm-slim AS frontend
-
-WORKDIR /app
-
-COPY package.json package-lock.json ./
-RUN npm ci
-
-COPY vite.config.js ./
-COPY resources ./resources
-COPY public ./public
-
-RUN npm run build
-
-# -----------------------------------------------------------------------------
-# PHP dependencies
+# PHP dependencies (frontend build imports vendor/tightenco/ziggy)
 # -----------------------------------------------------------------------------
 FROM composer:2 AS vendor
 
@@ -29,10 +13,32 @@ RUN composer install \
     --no-interaction \
     --no-progress \
     --prefer-dist \
-    --optimize-autoloader
+    --optimize-autoloader \
+    --no-scripts
 
 COPY . .
 RUN composer dump-autoload --optimize
+
+# -----------------------------------------------------------------------------
+# Frontend assets
+# -----------------------------------------------------------------------------
+FROM node:22-bookworm-slim AS frontend
+
+WORKDIR /app
+
+# Ensure vite/vue devDependencies are installed during image build
+ENV NPM_CONFIG_PRODUCTION=false
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY --from=vendor /app/vendor ./vendor
+
+COPY vite.config.js ./
+COPY resources ./resources
+COPY public ./public
+
+RUN npm run build
 
 # -----------------------------------------------------------------------------
 # Production image
