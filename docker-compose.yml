@@ -15,7 +15,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     expose:
-      - "80"
+      - "8009"
     environment:
       APP_NAME: ${APP_NAME:-OpsWiki}
       APP_ENV: ${APP_ENV:-production}
