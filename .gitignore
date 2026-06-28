@@ -1,0 +1,66 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+/.idea
+/.vscode
+/.nova
+/.zed
+/.phpactor.json
+/.codex
+/.cursor/
+/.fleet/
+
+# Laravel
+/.phpunit.cache
+/.phpunit.result.cache
+.phpunit.result.cache
+_ide_helper.php
+/auth.json
+Homestead.json
+Homestead.yaml
+
+# Environment (keep templates)
+.env
+.env.*
+!.env.example
+!.env.coolify.example
+
+# Dependencies
+/node_modules
+/vendor
+
+# Build & frontend dev
+/public/build
+/public/hot
+/public/fonts-manifest.dev.json
+/public/storage
+
+# Storage & cache
+/storage/*.key
+/storage/pail
+/bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# Logs
+*.log
+/storage/logs/*
+!storage/logs/.gitignore
+
+# Local databases
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Docker (local overrides only)
+docker-compose.override.yml
+
+# Testing
+/coverage
+.phpunit.cache
+
+# Misc
+*.pem
+*.key
+.npm
+.yarn

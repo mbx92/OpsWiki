@@ -1,0 +1,250 @@
+/* Wiki article typography — Cal.com design tokens */
+
+.wiki-content-host {
+    min-width: 0;
+}
+
+.wiki-content-host > .wiki-content {
+    margin: 0;
+}
+
+.wiki-content {
+    color: #374151;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    word-wrap: break-word;
+}
+
+.wiki-content > *:first-child {
+    margin-top: 0;
+}
+
+.wiki-content section:first-child > :first-child,
+.wiki-content article:first-child > :first-child {
+    margin-top: 0;
+}
+
+.wiki-content > *:last-child {
+    margin-bottom: 0;
+}
+
+/* Headings */
+.wiki-content h1,
+.wiki-content h2,
+.wiki-content h3,
+.wiki-content h4,
+.wiki-content h5,
+.wiki-content h6 {
+    font-family: 'Manrope', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    color: #111111;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-top: 2em;
+    margin-bottom: 0.75em;
+}
+
+.wiki-content h1 { font-size: 1.875rem; letter-spacing: -0.03em; scroll-margin-top: 9rem; }
+.wiki-content h2 { font-size: 1.5rem; letter-spacing: -0.025em; padding-bottom: 0.35em; border-bottom: 1px solid #e5e7eb; scroll-margin-top: 9rem; }
+.wiki-content h3 { font-size: 1.25rem; scroll-margin-top: 9rem; }
+.wiki-content h4 { font-size: 1.125rem; font-weight: 600; scroll-margin-top: 9rem; }
+.wiki-content h5 { font-size: 1rem; font-weight: 600; color: #374151; scroll-margin-top: 9rem; }
+.wiki-content h6 { font-size: 0.875rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; scroll-margin-top: 9rem; }
+
+/* Paragraphs & text */
+.wiki-content p {
+    margin-top: 0;
+    margin-bottom: 1.15em;
+    color: #374151;
+}
+
+.wiki-content strong,
+.wiki-content b {
+    font-weight: 600;
+    color: #111111;
+}
+
+.wiki-content em,
+.wiki-content i {
+    font-style: italic;
+}
+
+.wiki-content hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 2em 0;
+}
+
+/* Links */
+.wiki-content a {
+    color: #111111;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: #d1d5db;
+    transition: text-decoration-color 0.15s;
+}
+
+.wiki-content a:hover {
+    text-decoration-color: #111111;
+}
+
+/* Lists */
+.wiki-content ul,
+.wiki-content ol {
+    margin: 0 0 1.15em 0;
+    padding-left: 1.5em;
+}
+
+.wiki-content li {
+    margin-bottom: 0.4em;
+    color: #374151;
+}
+
+.wiki-content li > ul,
+.wiki-content li > ol {
+    margin-top: 0.4em;
+    margin-bottom: 0;
+}
+
+.wiki-content ul { list-style-type: disc; }
+.wiki-content ol { list-style-type: decimal; }
+
+/* Blockquote */
+.wiki-content blockquote {
+    margin: 1.5em 0;
+    padding: 0.75em 1.25em;
+    border-left: 3px solid #111111;
+    background: #f8f9fa;
+    border-radius: 0 8px 8px 0;
+    color: #374151;
+}
+
+.wiki-content blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* Inline code */
+.wiki-content code.wiki-inline-code,
+.wiki-content :not(pre) > code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.875em;
+    background: #f5f5f5;
+    color: #111111;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Code blocks */
+.wiki-content pre.wiki-code-block,
+.wiki-content pre {
+    position: relative;
+    margin: 1.5em 0;
+    padding: 1rem 1.25rem;
+    background: #101010;
+    color: #e5e7eb;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    border: 1px solid #1a1a1a;
+}
+
+.wiki-content pre code,
+.wiki-content pre .wiki-code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    border: none;
+    font-size: inherit;
+    border-radius: 0;
+}
+
+/* Tables */
+.wiki-content .wiki-table-wrap {
+    margin: 1.5em 0;
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.wiki-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.wiki-content th {
+    background: #f8f9fa;
+    color: #111111;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.65em 1em;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.wiki-content td {
+    padding: 0.65em 1em;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+}
+
+.wiki-content tr:last-child td {
+    border-bottom: none;
+}
+
+.wiki-content tr:nth-child(even) td {
+    background: #fafafa;
+}
+
+/* Images */
+.wiki-content img.wiki-image,
+.wiki-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin: 1.5em 0;
+}
+
+/* Definition lists */
+.wiki-content dl {
+    margin: 1.15em 0;
+}
+
+.wiki-content dt {
+    font-weight: 600;
+    color: #111111;
+    margin-top: 0.75em;
+}
+
+.wiki-content dd {
+    margin-left: 1.25em;
+    margin-bottom: 0.5em;
+    color: #374151;
+}
+
+/* Copy button on code blocks */
+.wiki-code-wrap {
+    position: relative;
+}
+
+.wiki-code-wrap .wiki-copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.wiki-code-wrap:hover .wiki-copy-btn {
+    opacity: 1;
+}
+
+/* Markdown-rendered content uses same styles */
+.prose.wiki-content,
+article.wiki-content {
+    max-width: none;
+}

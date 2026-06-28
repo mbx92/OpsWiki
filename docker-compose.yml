@@ -1,0 +1,92 @@
+# Coolify / Docker Compose — OpsWiki
+#
+# Alur deploy (data tetap aman):
+# 1. Build image dari Dockerfile
+# 2. Container start → entrypoint menjalankan `php artisan migrate --force`
+#    (hanya migration baru; TIDAK reset database)
+# 3. ProductionBootstrapSeeder (idempotent) → plans, legal, super admin
+# 4. Nginx + PHP-FPM + queue worker jalan
+#
+# Redeploy / update versi: ulangi langkah yang sama — data user tetap ada.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-80}:80"
+    environment:
+      APP_NAME: ${APP_NAME:-OpsWiki}
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-opswiki}
+      DB_USERNAME: ${DB_USERNAME:-opswiki}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SESSION_DRIVER: ${SESSION_DRIVER:-database}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      FILESYSTEM_DISK: ${FILESYSTEM_DISK:-local}
+      SAAS_CENTRAL_DOMAIN: ${SAAS_CENTRAL_DOMAIN}
+      SAAS_DEFAULT_CURRENCY: ${SAAS_DEFAULT_CURRENCY:-IDR}
+      SAAS_REGISTRATION_ENABLED: ${SAAS_REGISTRATION_ENABLED:-true}
+      SAAS_DNS_CNAME_TARGET: ${SAAS_DNS_CNAME_TARGET:-}
+      SAAS_DNS_A_RECORD_IP: ${SAAS_DNS_A_RECORD_IP:-}
+      SUPER_ADMIN_NAME: ${SUPER_ADMIN_NAME:-OpsWiki Admin}
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL}
+      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD}
+      SUPER_ADMIN_SYNC_PASSWORD: ${SUPER_ADMIN_SYNC_PASSWORD:-false}
+      RUN_BOOTSTRAP_SEEDER: ${RUN_BOOTSTRAP_SEEDER:-true}
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-noreply@opswiki.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-OpsWiki}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-ap-southeast-1}
+      AWS_BUCKET: ${AWS_BUCKET:-}
+      AWS_ENDPOINT: ${AWS_ENDPOINT:-}
+      AWS_USE_PATH_STYLE_ENDPOINT: ${AWS_USE_PATH_STYLE_ENDPOINT:-false}
+      SENTRY_LARAVEL_DSN: ${SENTRY_LARAVEL_DSN:-}
+      VITE_APP_NAME: ${APP_NAME:-OpsWiki}
+    volumes:
+      - opswiki_storage:/var/www/html/storage/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-opswiki}
+      POSTGRES_USER: ${DB_USERNAME:-opswiki}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - opswiki_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-opswiki} -d ${DB_DATABASE:-opswiki}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  opswiki_postgres:
+  opswiki_storage:
