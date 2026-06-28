@@ -11,13 +11,26 @@ if [ -z "$APP_KEY" ]; then
 fi
 
 # Non-destructive migrations only — never migrate:fresh / migrate:refresh
+echo "[opswiki] Waiting for database (${DB_HOST:-unknown})..."
+TRIES=30
+while [ "$TRIES" -gt 0 ]; do
+    if php artisan migrate:status > /dev/null 2>&1; then
+        break
+    fi
+    TRIES=$((TRIES - 1))
+    sleep 2
+done
+
+if ! php artisan migrate:status > /dev/null 2>&1; then
+    echo "[opswiki] ERROR: Cannot connect to database. Check DB_HOST and credentials in Coolify."
+    exit 1
+fi
+
 echo "[opswiki] Running pending migrations (data preserved)..."
 php artisan migrate --force
 
-if [ "${RUN_BOOTSTRAP_SEEDER:-true}" = "true" ]; then
-    echo "[opswiki] Running idempotent production bootstrap seeder..."
-    php artisan db:seed --class=ProductionBootstrapSeeder --force
-fi
+echo "[opswiki] Bootstrap seeder (first deploy only)..."
+php artisan opswiki:bootstrap
 
 php artisan storage:link --force 2>/dev/null || true
 

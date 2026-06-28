@@ -1,90 +1,66 @@
 # Deploy OpsWiki di Coolify
 
-**OpsWiki** — technical knowledge base SaaS untuk tim DevOps & IT (wiki, SOP, troubleshooting, snippets, tools).
+**OpsWiki** — technical knowledge base SaaS untuk tim DevOps & IT.
+
+## Setup di Coolify
+
+1. Buat **PostgreSQL** di Coolify (resource terpisah) — catat hostname internal, user, password, database
+2. Buat **Docker Compose** → connect repo [github.com/mbx92/OpsWiki](https://github.com/mbx92/OpsWiki)
+3. Copy env dari `.env.coolify.example` ke **Environment Variables**
+4. Set `DB_HOST` ke hostname Postgres dari Coolify (bukan `localhost`)
+5. Link / attach database ke compose stack jika Coolify menawarkan opsi tersebut (supaya satu network)
+6. Deploy — hanya service **app** yang di-build; tidak ada Postgres di `docker-compose.yml`
+
+`docker-compose.yml` **tidak** mendefinisikan network atau service Postgres baru.
 
 ## Alur deploy (data tetap aman)
 
 ```text
-Build image
+Build image (Dockerfile)
     ↓
-Container start
+Container app start
     ↓
 entrypoint.sh
-    ├─ php artisan migrate --force     ← hanya migration baru, TIDAK reset DB
-    ├─ db:seed ProductionBootstrapSeeder ← idempotent (plans, legal, super admin)
-    ├─ storage:link
-    └─ config/route/view cache
+    ├─ tunggu DB siap
+    ├─ php artisan migrate --force     ← hanya migration baru
+    ├─ opswiki:bootstrap               ← seed sekali (jika plans belum ada)
+    ├─ storage:link + cache
     ↓
-Nginx + PHP-FPM + queue worker
+Nginx + PHP-FPM + queue worker (port 80)
 ```
 
-**Redeploy / update versi:** ulangi alur yang sama. Database volume (`opswiki_postgres`) dan `storage` tetap — data user, wiki, billing tidak hilang.
+**Redeploy:** migration tambahan saja — data Postgres di Coolify tetap aman.
 
-**Yang TIDAK pernah dijalankan otomatis:**
-- `migrate:fresh`
-- `migrate:refresh`
-- `db:wipe`
+**Tidak pernah dijalankan:** `migrate:fresh`, `migrate:refresh`, `db:wipe`
 
-## Opsi A — Docker Compose di Coolify
+## Env wajib
 
-1. Buat project **Docker Compose** di Coolify
-2. Connect repository ini
-3. Set **Environment Variables** dari `.env.coolify.example`
-4. Generate `APP_KEY`:
-   ```bash
-   php artisan key:generate --show
-   ```
-5. Ganti `APP_URL`, `SAAS_CENTRAL_DOMAIN`, `SUPER_ADMIN_*`, `DB_PASSWORD`
-6. Deploy
+| Variable | Keterangan |
+|----------|------------|
+| `APP_KEY` | `php artisan key:generate --show` |
+| `APP_URL` | URL publik, mis. `https://opswiki.example.com` |
+| `DB_HOST` | Hostname internal Postgres Coolify |
+| `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | Kredensial dari resource DB Coolify |
+| `SAAS_CENTRAL_DOMAIN` | Domain utama platform |
+| `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` | Login platform admin |
 
-Coolify akan build `Dockerfile` dan menjalankan `docker-compose.yml`.
+Bootstrap seeder jalan **otomatis sekali** saat deploy pertama (tabel `plans` masih kosong). Redeploy hanya menjalankan migration.
 
-## Opsi B — Dockerfile saja (database eksternal)
+## Super admin
 
-1. Buat **Application** → Build pack: Dockerfile
-2. Tambahkan PostgreSQL sebagai database service Coolify
-3. Set `DB_HOST` ke hostname database internal Coolify
-4. Port container: **80**
-5. Health check path: `/up`
+Login: `https://domain-anda/login` → **Platform Admin**
 
 ## DNS
 
 | Record | Value |
 |--------|-------|
-| `opswiki.example.com` | A → IP server Coolify |
-| `*.opswiki.example.com` | A atau CNAME wildcard |
-
-Set `SAAS_CENTRAL_DOMAIN=opswiki.example.com`.
-
-## Super admin login
-
-Setelah deploy pertama:
-
-| Field | Env variable |
-|-------|----------------|
-| Email | `SUPER_ADMIN_EMAIL` |
-| Password | `SUPER_ADMIN_PASSWORD` |
-
-Login di `https://opswiki.example.com/login` → menu **Platform Admin**.
-
-Password hanya di-set saat user pertama kali dibuat. Untuk reset via env, set `SUPER_ADMIN_SYNC_PASSWORD=true` sekali, deploy, lalu kembalikan ke `false`.
-
-## Env penting
-
-| Variable | Keterangan |
-|----------|------------|
-| `RUN_BOOTSTRAP_SEEDER` | `true` (default) — seed plans & super admin tanpa hapus data |
-| `SUPER_ADMIN_EMAIL` | Email platform admin |
-| `SUPER_ADMIN_PASSWORD` | Password awal super admin |
-| `SAAS_CENTRAL_DOMAIN` | Domain utama untuk subdomain workspace |
-| `SAAS_DEFAULT_CURRENCY` | `IDR` untuk pricing Rupiah |
+| `opswiki.example.com` | A → server Coolify |
+| `*.opswiki.example.com` | wildcard ke server yang sama |
 
 ## Troubleshooting
 
-**Migration gagal:** pastikan `DB_*` benar dan Postgres sudah healthy.
+**Cannot connect to database:** `DB_HOST` harus hostname **internal** Docker Coolify, bukan IP publik.
 
-**APP_KEY missing:** container exit — set `APP_KEY` di Coolify env.
+**Migration gagal:** pastikan database sudah dibuat dan user punya hak CREATE/ALTER.
 
-**Asset 404:** pastikan build frontend sukses di stage Docker (cek build log).
-
-**Queue tidak jalan:** sudah included di supervisord; pastikan `QUEUE_CONNECTION=database`.
+**APP_KEY missing:** container exit — set di Coolify env.
