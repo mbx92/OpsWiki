@@ -87,11 +87,6 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
 
     Route::bind('inbox', fn (string $value) => InboxItem::findOrFail($value));
 
-    Route::middleware('permission:inbox.view')->group(function () {
-        Route::get('/inbox', [InboxItemController::class, 'index'])->name('inbox.index');
-        Route::get('/inbox/{inbox}', [InboxItemController::class, 'show'])->name('inbox.show');
-    });
-
     Route::middleware('permission:inbox.manage')->group(function () {
         Route::get('/inbox/create', [InboxItemController::class, 'create'])->name('inbox.create');
         Route::post('/inbox', [InboxItemController::class, 'store'])->name('inbox.store');
@@ -102,6 +97,11 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::post('/inbox/{inbox}/convert/snippet', [InboxItemController::class, 'convertToSnippet'])->name('inbox.convert.snippet');
         Route::post('/inbox/{inbox}/convert/sop', [InboxItemController::class, 'convertToSop'])->name('inbox.convert.sop');
         Route::post('/inbox/{inbox}/convert/troubleshooting', [InboxItemController::class, 'convertToTroubleshooting'])->name('inbox.convert.troubleshooting');
+    });
+
+    Route::middleware('permission:inbox.view')->group(function () {
+        Route::get('/inbox', [InboxItemController::class, 'index'])->name('inbox.index');
+        Route::get('/inbox/{inbox}', [InboxItemController::class, 'show'])->name('inbox.show');
     });
 
     Route::middleware(['permission:wiki.import', 'plan:wiki.import'])->group(function () {
