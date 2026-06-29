@@ -5,6 +5,7 @@ import AppSidebar from '@/Components/AppSidebar.vue';
 import GlobalSearch from '@/Components/GlobalSearch.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
+import PageHelpButton from '@/Components/PageHelpButton.vue';
 import { dispatchProductTour } from '@/Composables/useProductTour';
 import { useSidebarNav } from '@/Composables/useSidebarNav';
 
@@ -33,6 +34,7 @@ const startGuide = () => dispatchProductTour({ restart: true });
                 <GlobalSearch />
 
                 <div class="ml-auto flex items-center gap-2" data-tour="quick-create">
+                    <PageHelpButton />
                     <Link
                         :href="route('inbox.create')"
                         class="hidden rounded-[8px] border border-[#e5e7eb] px-3 py-1.5 text-[13px] font-[500] text-[#374151] hover:bg-[#f8f9fa] sm:inline-flex"
@@ -98,11 +100,13 @@ const startGuide = () => dispatchProductTour({ restart: true });
 
             <!-- Page header -->
             <div v-if="$slots.header" class="sticky top-16 z-30 border-b border-[#e5e7eb] bg-white px-4 py-4 lg:px-6">
-                <slot name="header" />
+                <div class="min-w-0" data-page-tour="page-header">
+                    <slot name="header" />
+                </div>
             </div>
 
             <!-- Content -->
-            <main class="flex-1 p-4 lg:p-6">
+            <main class="flex-1 p-4 lg:p-6" data-page-tour="page-content">
                 <slot />
             </main>
         </div>

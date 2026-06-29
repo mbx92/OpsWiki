@@ -19,11 +19,11 @@ const statuses = ['new', 'reviewed', 'converted', 'archived'];
         <template #header>
             <div class="flex items-center justify-between">
                 <h1 class="text-[20px] font-[700] text-[#111111]" style="font-family: 'Manrope', sans-serif;">Inbox</h1>
-                <Link :href="route('inbox.create')" class="rounded-[8px] bg-[#111111] px-4 py-2 text-[13px] font-[600] text-white hover:bg-[#242424]">+ New Note</Link>
+                <Link :href="route('inbox.create')" data-page-tour="page-actions" class="rounded-[8px] bg-[#111111] px-4 py-2 text-[13px] font-[600] text-white hover:bg-[#242424]">+ New Note</Link>
             </div>
         </template>
 
-        <div class="mb-4 flex flex-wrap items-center gap-2">
+        <div class="mb-4 flex flex-wrap items-center gap-2" data-page-tour="page-filters">
             <Link :href="route('inbox.index')" class="inline-flex items-center rounded-[8px] px-3 py-2 text-[13px] font-[500]" :class="!filters.status ? 'bg-[#111111] text-white' : 'border border-[#e5e7eb] bg-white text-[#374151]'">All</Link>
             <Link v-for="s in statuses" :key="s" :href="route('inbox.index', { status: s })" class="inline-flex items-center rounded-[8px] px-3 py-2 text-[13px] font-[500] capitalize" :class="filters.status === s ? 'bg-[#111111] text-white' : 'border border-[#e5e7eb] bg-white text-[#374151]'">{{ s }}</Link>
         </div>

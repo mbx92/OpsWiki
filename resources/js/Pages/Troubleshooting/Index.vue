@@ -17,14 +17,14 @@ const search = () => router.get(route('troubleshooting.index'), { q: q.value }, 
         <template #header>
             <div class="flex items-center justify-between">
                 <h1 class="text-[20px] font-[700] text-[#111111]" style="font-family: 'Manrope', sans-serif;">Troubleshooting</h1>
-                <div class="flex gap-2">
+                <div class="flex gap-2" data-page-tour="page-actions">
                     <Link :href="route('troubleshooting.import')" class="rounded-[8px] border border-[#e5e7eb] px-4 py-2 text-[13px] font-[500] text-[#374151] hover:bg-[#f8f9fa]">Import MD</Link>
                     <Link :href="route('troubleshooting.create')" class="rounded-[8px] bg-[#111111] px-4 py-2 text-[13px] font-[600] text-white hover:bg-[#242424]">+ New Case</Link>
                 </div>
             </div>
         </template>
 
-        <form @submit.prevent="search" class="mb-4 flex flex-wrap items-center gap-2">
+        <form @submit.prevent="search" class="mb-4 flex flex-wrap items-center gap-2" data-page-tour="page-filters">
             <input v-model="q" placeholder="Search cases..." class="w-full max-w-sm rounded-[8px] border border-[#e5e7eb] bg-white px-3 py-2 text-[14px] text-[#111111] placeholder:text-[#898989] outline-none focus:border-[#111111]" />
             <Link
                 v-for="s in statuses"

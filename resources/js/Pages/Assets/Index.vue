@@ -56,7 +56,7 @@ const search = () => router.get(route('assets.index'), { ...props.filters, q: q.
             <h1 class="text-[20px] font-[700] text-[#111111]" style="font-family: 'Manrope', sans-serif;">Assets</h1>
         </template>
 
-        <form @submit.prevent="upload" class="mb-4 space-y-4 rounded-[12px] border border-[#e5e7eb] bg-white p-5">
+        <form @submit.prevent="upload" class="mb-4 space-y-4 rounded-[12px] border border-[#e5e7eb] bg-white p-5" data-page-tour="page-actions">
             <div>
                 <label class="block text-[14px] font-[500] text-[#111111]">Upload file</label>
                 <FileDropzone

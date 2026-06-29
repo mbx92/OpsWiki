@@ -1,4 +1,4 @@
-import { driver } from 'driver.js';
+import { runTour } from '@/tours/driverConfig';
 import { usePage } from '@inertiajs/vue3';
 
 const STORAGE_PREFIX = 'opswiki-tour-completed';
@@ -131,10 +131,10 @@ function buildSteps() {
             },
         },
         {
-            element: '[data-tour="user-menu"]',
+            element: '[data-page-tour="page-help"]',
             popover: {
                 title: 'Profil & panduan ulang',
-                description: 'Ubah profil di sini. Pilih <strong>Panduan sistem</strong> kapan saja untuk menjalankan tour ini lagi. Selamat bekerja!',
+                description: 'Ubah profil di menu avatar. Klik tombol <strong>?</strong> di header untuk panduan halaman/modul yang sedang dibuka.',
                 side: 'bottom',
                 align: 'end',
             },
@@ -153,24 +153,9 @@ export function useProductTour() {
             return;
         }
 
-        const driverObj = driver({
-            showProgress: true,
-            progressText: '{{current}} / {{total}}',
-            nextBtnText: 'Lanjut',
-            prevBtnText: 'Kembali',
-            doneBtnText: 'Selesai',
-            allowClose: true,
-            overlayOpacity: 0.55,
-            stagePadding: 8,
-            stageRadius: 12,
-            popoverClass: 'opswiki-tour-popover',
-            steps: buildSteps(),
-            onDestroyed: () => {
-                markTourCompleted(userId);
-            },
+        runTour(buildSteps(), {
+            onComplete: () => markTourCompleted(userId),
         });
-
-        driverObj.drive();
     };
 
     const restartTour = () => {

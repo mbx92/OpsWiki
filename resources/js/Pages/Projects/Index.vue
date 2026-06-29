@@ -17,7 +17,7 @@ const search = () => router.get(route('projects.index'), { q: q.value }, { prese
         <template #header>
             <div class="flex items-center justify-between">
                 <h1 class="text-[20px] font-[700] text-[#111111]" style="font-family: 'Manrope', sans-serif;">Projects</h1>
-                <Link :href="route('projects.create')" class="rounded-[8px] bg-[#111111] px-4 py-2 text-[13px] font-[600] text-white hover:bg-[#242424]">+ New Project</Link>
+                <Link :href="route('projects.create')" data-page-tour="page-actions" class="rounded-[8px] bg-[#111111] px-4 py-2 text-[13px] font-[600] text-white hover:bg-[#242424]">+ New Project</Link>
             </div>
         </template>
 

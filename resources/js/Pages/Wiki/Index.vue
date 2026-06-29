@@ -34,7 +34,7 @@ const setScope = (value) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <h1 class="text-[20px] font-[700] text-[#111111]" style="font-family: 'Manrope', sans-serif;">Wiki</h1>
-                <div class="flex gap-2">
+                <div class="flex gap-2" data-page-tour="page-actions">
                     <a v-if="hasFeature('wiki.export')" :href="route('wiki.export.static')" class="rounded-[8px] border border-[#e5e7eb] px-4 py-2 text-[13px] font-[500] text-[#374151] hover:bg-[#f8f9fa]">Export static</a>
                     <Link v-if="hasFeature('wiki.import')" :href="route('wiki.import')" class="rounded-[8px] border border-[#e5e7eb] px-4 py-2 text-[13px] font-[500] text-[#374151] hover:bg-[#f8f9fa]">Import</Link>
                     <Link :href="route('wiki.create')" class="rounded-[8px] bg-[#111111] px-4 py-2 text-[13px] font-[600] text-white hover:bg-[#242424]">+ New Page</Link>
@@ -42,7 +42,7 @@ const setScope = (value) => {
             </div>
         </template>
 
-        <div class="mb-4 flex flex-wrap items-center gap-3">
+        <div class="mb-4 flex flex-wrap items-center gap-3" data-page-tour="page-filters">
             <form @submit.prevent="search" class="flex-1 min-w-[200px]">
                 <input v-model="q" placeholder="Search pages..." class="w-full max-w-sm rounded-[8px] border border-[#e5e7eb] bg-white px-3 py-2 text-[14px] text-[#111111] placeholder:text-[#898989] outline-none focus:border-[#111111]" />
             </form>

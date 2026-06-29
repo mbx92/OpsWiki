@@ -23,7 +23,7 @@ const toggleFavorite = (snippet) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <h1 class="text-[20px] font-[700] text-[#111111]" style="font-family: 'Manrope', sans-serif;">Snippets</h1>
-                <Link :href="route('snippets.create')" class="rounded-[8px] bg-[#111111] px-4 py-2 text-[13px] font-[600] text-white hover:bg-[#242424]">+ New Snippet</Link>
+                <Link :href="route('snippets.create')" data-page-tour="page-actions" class="rounded-[8px] bg-[#111111] px-4 py-2 text-[13px] font-[600] text-white hover:bg-[#242424]">+ New Snippet</Link>
             </div>
         </template>
 
