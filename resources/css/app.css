@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './wiki-content.css';
+@import './product-tour.css';
 
 @theme {
     /* Fonts */

@@ -4,6 +4,13 @@ import { useSidebarNav } from '@/Composables/useSidebarNav';
 
 const { sidebarNav, isNavActive, requiredPlanLabel, upgradeUrl } = useSidebarNav();
 
+const tourKeys = {
+    'inbox.index': 'nav-inbox',
+    'wiki.index': 'nav-wiki',
+    'snippets.index': 'nav-snippets',
+    'settings.index': 'nav-settings',
+};
+
 const icons = {
     dashboard: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
     'inbox.index': 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4',
@@ -32,11 +39,12 @@ const icons = {
             <Link :href="route('dashboard')" class="text-[15px] font-[700] text-[#111111]" style="font-family: 'Manrope', sans-serif;">OpsWiki</Link>
         </div>
 
-        <nav class="flex-1 space-y-0.5 p-3">
+        <nav class="flex-1 space-y-0.5 p-3" data-tour="sidebar">
             <Link
                 v-for="item in sidebarNav"
                 :key="item.route"
                 :href="item.locked ? upgradeUrl(item.requiredPlan, item.planFeature) : route(item.route)"
+                :data-tour="tourKeys[item.route] || undefined"
                 class="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-[14px] font-[500] transition-colors duration-150"
                 :class="[
                     isNavActive(item) && !item.locked

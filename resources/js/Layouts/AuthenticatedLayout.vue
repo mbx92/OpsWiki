@@ -5,10 +5,13 @@ import AppSidebar from '@/Components/AppSidebar.vue';
 import GlobalSearch from '@/Components/GlobalSearch.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
+import { dispatchProductTour } from '@/Composables/useProductTour';
 import { useSidebarNav } from '@/Composables/useSidebarNav';
 
 const mobileOpen = ref(false);
 const { sidebarNav: navItems, isNavActive, requiredPlanLabel, upgradeUrl } = useSidebarNav();
+
+const startGuide = () => dispatchProductTour({ restart: true });
 </script>
 
 <template>
@@ -29,7 +32,7 @@ const { sidebarNav: navItems, isNavActive, requiredPlanLabel, upgradeUrl } = use
 
                 <GlobalSearch />
 
-                <div class="ml-auto flex items-center gap-2">
+                <div class="ml-auto flex items-center gap-2" data-tour="quick-create">
                     <Link
                         :href="route('inbox.create')"
                         class="hidden rounded-[8px] border border-[#e5e7eb] px-3 py-1.5 text-[13px] font-[500] text-[#374151] hover:bg-[#f8f9fa] sm:inline-flex"
@@ -45,11 +48,22 @@ const { sidebarNav: navItems, isNavActive, requiredPlanLabel, upgradeUrl } = use
 
                     <Dropdown align="right" width="48">
                         <template #trigger>
-                            <button class="flex h-8 w-8 items-center justify-center rounded-full bg-[#f5f5f5] text-[13px] font-[600] text-[#111111]">
+                            <button
+                                type="button"
+                                data-tour="user-menu"
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-[#f5f5f5] text-[13px] font-[600] text-[#111111]"
+                            >
                                 {{ $page.props.auth.user.name.charAt(0).toUpperCase() }}
                             </button>
                         </template>
                         <template #content>
+                            <button
+                                type="button"
+                                class="block w-full px-4 py-2 text-start text-[14px] leading-5 text-[#374151] transition duration-150 ease-in-out hover:bg-[#f8f9fa] focus:bg-[#f8f9fa] focus:outline-none"
+                                @click="startGuide"
+                            >
+                                Panduan sistem
+                            </button>
                             <DropdownLink :href="route('profile.edit')">Profile</DropdownLink>
                             <DropdownLink :href="route('settings.index')">Settings</DropdownLink>
                             <DropdownLink v-if="$page.props.auth.user?.is_super_admin" :href="route('platform.dashboard')">Platform Admin</DropdownLink>

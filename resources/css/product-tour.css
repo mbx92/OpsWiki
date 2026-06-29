@@ -1,0 +1,53 @@
+@import 'driver.js/dist/driver.css';
+
+.driver-popover.opswiki-tour-popover {
+    background: #ffffff;
+    color: #111111;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(17, 17, 17, 0.12);
+    max-width: 360px;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+.driver-popover.opswiki-tour-popover .driver-popover-title {
+    font-family: 'Manrope', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111111;
+}
+
+.driver-popover.opswiki-tour-popover .driver-popover-description {
+    font-size: 13px;
+    line-height: 1.55;
+    color: #374151;
+}
+
+.driver-popover.opswiki-tour-popover .driver-popover-progress-text {
+    font-size: 12px;
+    color: #898989;
+}
+
+.driver-popover.opswiki-tour-popover button {
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-shadow: none;
+}
+
+.driver-popover.opswiki-tour-popover .driver-popover-next-btn,
+.driver-popover.opswiki-tour-popover .driver-popover-done-btn {
+    background: #111111;
+    color: #ffffff;
+    border: none;
+}
+
+.driver-popover.opswiki-tour-popover .driver-popover-prev-btn {
+    background: #ffffff;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.driver-popover.opswiki-tour-popover .driver-popover-close-btn {
+    color: #898989;
+}

@@ -19,7 +19,7 @@ defineProps({
         </template>
 
         <!-- Stats -->
-        <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-tour="dashboard-stats">
             <div class="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
                 <div class="text-[13px] text-[#898989]">New Inbox</div>
                 <div class="mt-1 text-[28px] font-[700] text-[#111111]">{{ stats.inbox_new }}</div>
@@ -39,7 +39,7 @@ defineProps({
         </div>
 
         <!-- Quick actions -->
-        <div class="mb-6 flex flex-wrap gap-2">
+        <div class="mb-6 flex flex-wrap gap-2" data-tour="dashboard-quick-actions">
             <Link :href="route('inbox.create')" class="rounded-[8px] border border-[#e5e7eb] bg-white px-4 py-2 text-[13px] font-[500] text-[#374151] hover:bg-[#f8f9fa]">+ New Note</Link>
             <Link :href="route('wiki.create')" class="rounded-[8px] border border-[#e5e7eb] bg-white px-4 py-2 text-[13px] font-[500] text-[#374151] hover:bg-[#f8f9fa]">+ Wiki Page</Link>
             <Link :href="route('snippets.create')" class="rounded-[8px] border border-[#e5e7eb] bg-white px-4 py-2 text-[13px] font-[500] text-[#374151] hover:bg-[#f8f9fa]">+ Snippet</Link>

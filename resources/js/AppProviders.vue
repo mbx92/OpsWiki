@@ -1,5 +1,6 @@
 <script setup>
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import ProductTourHost from '@/Components/ProductTourHost.vue';
 import ToastContainer from '@/Components/ToastContainer.vue';
 import { toast } from '@/Composables/useToast';
 import { router, usePage } from '@inertiajs/vue3';
@@ -25,4 +26,5 @@ router.on('success', showFlash);
 <template>
     <ToastContainer />
     <ConfirmDialog />
+    <ProductTourHost />
 </template>
