@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Concerns;
 
+use App\Models\Project;
 use App\Services\ProjectDocumentationService;
+use App\Support\TenantContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 trait LinksContentToProject
 {
@@ -47,8 +50,18 @@ trait LinksContentToProject
 
     protected function linkProjectValidationRules(): array
     {
+        $tenantId = TenantContext::id();
+
         return [
-            'link_project' => 'nullable|string|max:255|exists:projects,slug',
+            'link_project' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::exists('projects', 'slug')->when(
+                    $tenantId !== null,
+                    fn ($rule) => $rule->where('tenant_id', $tenantId),
+                ),
+            ],
         ];
     }
 }

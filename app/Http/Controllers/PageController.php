@@ -15,6 +15,7 @@ use App\Services\MinioArchiveService;
 use App\Services\PageVersionService;
 use App\Services\PlanGateService;
 use App\Services\ProjectDocumentationService;
+use App\Support\TenantValidation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
@@ -86,10 +87,10 @@ class PageController extends Controller
 
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:pages,slug',
+            'slug' => ['nullable', 'string', 'max:255', TenantValidation::unique('pages', 'slug')],
             'summary' => 'nullable|string|max:500',
             'content_markdown' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => ['nullable', TenantValidation::exists('categories', 'id')],
             'status' => 'required|in:draft,review,tested,production,deprecated,archived',
             'visibility' => 'required|in:private,internal,public',
             'tag_names' => 'nullable|array',
@@ -161,11 +162,11 @@ class PageController extends Controller
     {
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:pages,slug,'.$page->id,
+            'slug' => ['nullable', 'string', 'max:255', TenantValidation::unique('pages', 'slug', $page->id)],
             'summary' => 'nullable|string|max:500',
             'content_markdown' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
-            'book_id' => 'nullable|exists:books,id',
+            'category_id' => ['nullable', TenantValidation::exists('categories', 'id')],
+            'book_id' => ['nullable', TenantValidation::exists('books', 'id')],
             'status' => 'required|in:draft,review,tested,production,deprecated,archived',
             'visibility' => 'required|in:private,internal,public',
             'tag_names' => 'nullable|array',

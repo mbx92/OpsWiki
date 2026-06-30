@@ -62,10 +62,14 @@ Route::middleware('guest')->group(function () {
     }
 });
 
-Route::get('/share/books/{book:slug}', [PublicShareController::class, 'showBook'])->name('share.books.show');
-Route::get('/share/pages/{page:slug}', [PublicShareController::class, 'showPage'])->name('share.pages.show');
+Route::get('/share/books/{book:slug}', [PublicShareController::class, 'showBook'])
+    ->middleware('tenant.context')
+    ->name('share.books.show');
+Route::get('/share/pages/{page:slug}', [PublicShareController::class, 'showPage'])
+    ->middleware('tenant.context')
+    ->name('share.pages.show');
 
-Route::middleware(['auth', 'verified', 'active'])->group(function () {
+Route::middleware(['auth', 'verified', 'active', 'tenant'])->group(function () {
     Route::get('/search', [SearchController::class, 'index'])->name('search.index');
     Route::get('/search/query', [SearchController::class, 'query'])->name('search.query');
 

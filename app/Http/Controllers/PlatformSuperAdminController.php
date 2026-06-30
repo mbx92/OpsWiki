@@ -52,7 +52,7 @@ class PlatformSuperAdminController extends Controller
             return back()->with('error', 'User is already a super admin.');
         }
 
-        $user->update(['is_super_admin' => true]);
+        $user->forceFill(['is_super_admin' => true])->save();
 
         return back()->with('success', "{$user->name} is now a super admin.");
     }
@@ -72,7 +72,7 @@ class PlatformSuperAdminController extends Controller
             return back()->with('error', 'At least one super admin must remain.');
         }
 
-        $user->update(['is_super_admin' => false]);
+        $user->forceFill(['is_super_admin' => false])->save();
 
         return back()->with('success', 'Super admin access removed.');
     }

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenantRelation;
 use Illuminate\Database\Eloquent\Model;
 
 class PageRelation extends Model
 {
+    use BelongsToTenantRelation;
+
     public const TYPE_PAGES = 'pages';
 
     public const TYPE_SOPS = 'sops';
@@ -48,6 +51,7 @@ class PageRelation extends Model
     ];
 
     protected $fillable = [
+        'tenant_id',
         'source_type',
         'source_id',
         'target_type',
@@ -253,7 +257,33 @@ class PageRelation extends Model
     public static function relatedValidationRules(): array
     {
         return [
-            'related' => 'nullable|array',
+            'related' => [
+                'nullable',
+                'array',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! is_array($value)) {
+                        return;
+                    }
+
+                    foreach ($value as $item) {
+                        if (! is_array($item)) {
+                            $fail('One or more related items are invalid.');
+
+                            return;
+                        }
+
+                        $type = $item['type'] ?? null;
+                        $id = $item['id'] ?? null;
+                        $class = self::resolveModel((string) $type);
+
+                        if (! $class || ! $class::find($id)) {
+                            $fail('One or more related items are invalid.');
+
+                            return;
+                        }
+                    }
+                },
+            ],
             'related.*.type' => 'required|string|in:'.implode(',', array_keys(self::LINKABLE_TYPES)),
             'related.*.id' => 'required|integer',
         ];

@@ -6,9 +6,9 @@ use App\Support\TenantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-trait BelongsToTenant
+trait BelongsToTenantRelation
 {
-    public static function bootBelongsToTenant(): void
+    public static function bootBelongsToTenantRelation(): void
     {
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = TenantContext::id();
@@ -25,10 +25,5 @@ trait BelongsToTenant
                 $model->setAttribute('tenant_id', TenantContext::id());
             }
         });
-    }
-
-    public function tenant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\App\Models\Tenant::class);
     }
 }

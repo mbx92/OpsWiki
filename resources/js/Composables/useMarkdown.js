@@ -1,8 +1,13 @@
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 marked.setOptions({
     gfm: true,
     breaks: true,
+});
+
+const sanitize = (html) => DOMPurify.sanitize(html, {
+    USE_PROFILES: { html: true },
 });
 
 export function useMarkdown() {
@@ -11,8 +16,8 @@ export function useMarkdown() {
             return '';
         }
 
-        return marked.parse(markdown);
+        return sanitize(marked.parse(markdown));
     };
 
-    return { render };
+    return { render, sanitize };
 }

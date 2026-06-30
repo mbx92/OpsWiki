@@ -26,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'super_admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
             'plan' => \App\Http\Middleware\EnsurePlanFeature::class,
+            'tenant' => \App\Http\Middleware\EnsureTenantAccess::class,
+            'tenant.context' => \App\Http\Middleware\EnsureTenantContext::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

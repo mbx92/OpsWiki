@@ -185,11 +185,11 @@ class HtmlParserService
                 $node->removeAttribute($attr);
             }
 
-            // Strip namespaced/data attributes
             if ($node->hasAttributes()) {
                 $toRemove = [];
                 foreach ($node->attributes as $attr) {
-                    if (str_starts_with($attr->name, 'data-') || str_contains($attr->name, ':')) {
+                    $name = strtolower($attr->name);
+                    if (str_starts_with($name, 'on') || str_starts_with($name, 'data-') || str_contains($attr->name, ':')) {
                         $toRemove[] = $attr->name;
                     }
                 }
@@ -519,7 +519,7 @@ class HtmlParserService
 
             $href = $link->getAttribute('href');
 
-            if (str_starts_with($href, 'javascript:')) {
+            if (preg_match('/^\s*(javascript|data|vbscript):/i', $href)) {
                 $link->parentNode?->replaceChild(
                     $root->ownerDocument->createTextNode($link->textContent ?? ''),
                     $link,

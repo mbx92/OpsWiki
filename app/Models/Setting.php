@@ -2,22 +2,21 @@
 
 namespace App\Models;
 
+use App\Support\TenantContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
 
 class Setting extends Model
 {
-    protected $primaryKey = 'key';
+    protected $fillable = ['tenant_id', 'key', 'value'];
 
     public $incrementing = false;
 
     protected $keyType = 'string';
 
-    protected $fillable = ['key', 'value'];
-
     public static function getJson(string $key, array $default = []): array
     {
-        $row = static::query()->find($key);
+        $row = static::rowQuery($key)->first();
 
         if (! $row) {
             return $default;
@@ -30,8 +29,8 @@ class Setting extends Model
 
     public static function putJson(string $key, array $value): void
     {
-        static::query()->updateOrCreate(
-            ['key' => $key],
+        static::rowQuery($key)->updateOrCreate(
+            static::rowAttributes($key),
             ['value' => json_encode($value)],
         );
     }
@@ -234,6 +233,58 @@ class Setting extends Model
         }
 
         static::putJson('ai', $payload);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder<static>
+     */
+    private static function rowQuery(string $key)
+    {
+        $tenantId = static::resolveTenantId();
+
+        if (! $tenantId) {
+            return static::query()->whereRaw('0 = 1');
+        }
+
+        return static::query()
+            ->where('tenant_id', $tenantId)
+            ->where('key', $key);
+    }
+
+    /**
+     * @return array{tenant_id: int, key: string}
+     */
+    private static function rowAttributes(string $key): array
+    {
+        return [
+            'tenant_id' => TenantContext::required()->id,
+            'key' => $key,
+        ];
+    }
+
+    private static function resolveTenantId(): ?int
+    {
+        if ($tenantId = TenantContext::id()) {
+            return $tenantId;
+        }
+
+        static $fallbackTenantId = null;
+        static $fallbackResolved = false;
+
+        if ($fallbackResolved) {
+            return $fallbackTenantId;
+        }
+
+        $fallbackResolved = true;
+        $slug = config('saas.default_tenant_slug');
+
+        if (! $slug) {
+            return null;
+        }
+
+        $fallbackTenantId = Tenant::query()->where('slug', $slug)->value('id');
+
+        return $fallbackTenantId ? (int) $fallbackTenantId : null;
     }
 
     /**

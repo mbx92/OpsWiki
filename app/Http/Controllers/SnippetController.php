@@ -8,6 +8,7 @@ use App\Models\Snippet;
 use App\Models\Tag;
 use App\Services\ActivityLogService;
 use App\Services\ProjectDocumentationService;
+use App\Support\TenantValidation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -71,7 +72,7 @@ class SnippetController extends Controller
             'command' => 'required|string',
             'language' => 'required|string|max:50',
             'platform' => 'nullable|string|max:50',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => ['nullable', TenantValidation::exists('categories', 'id')],
             'is_tested' => 'boolean',
             'is_favorite' => 'boolean',
             'tag_names' => 'nullable|array',
@@ -118,7 +119,7 @@ class SnippetController extends Controller
             'command' => 'required|string',
             'language' => 'required|string|max:50',
             'platform' => 'nullable|string|max:50',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => ['nullable', TenantValidation::exists('categories', 'id')],
             'is_tested' => 'boolean',
             'is_favorite' => 'boolean',
             'tag_names' => 'nullable|array',

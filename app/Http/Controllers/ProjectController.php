@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Tag;
 use App\Services\ActivityLogService;
 use App\Services\ProjectDocumentationService;
+use App\Support\TenantValidation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -117,7 +118,7 @@ class ProjectController extends Controller
     {
         return $request->validate(array_merge([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:projects,slug'.($project ? ','.$project->id : ''),
+            'slug' => ['nullable', 'string', 'max:255', TenantValidation::unique('projects', 'slug', $project?->id)],
             'description' => 'nullable|string',
             'status' => 'required|in:planning,development,staging,production,maintenance,archived',
             'repository_url' => 'nullable|url|max:500',

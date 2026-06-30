@@ -19,9 +19,9 @@ class UserController extends Controller
     public function index(): Response
     {
         return Inertia::render('Settings/Users/Index', [
-            'users' => User::with('role')
+            'users' => $this->tenantUsersQuery()
                 ->orderBy('name')
-                ->get(['id', 'name', 'email', 'role_id', 'is_active', 'created_at']),
+                ->get(['users.id', 'users.name', 'users.email', 'users.role_id', 'users.is_active', 'users.created_at']),
             'roles' => Role::orderBy('name')->get(['id', 'name', 'slug']),
         ]);
     }
@@ -65,6 +65,8 @@ class UserController extends Controller
 
     public function edit(User $user): Response
     {
+        $this->assertTenantMember($user);
+
         return Inertia::render('Settings/Users/Edit', [
             'user' => $user->load('role'),
             'roles' => $this->assignableRoles(),
@@ -73,6 +75,8 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
+        $this->assertTenantMember($user);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,'.$user->id,
@@ -102,11 +106,33 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
+        $this->assertTenantMember($user);
         $this->assertCanDeleteUser($user);
 
-        $user->delete();
+        TenantContext::required()->users()->detach($user->id);
 
-        return redirect()->route('settings.users.index')->with('success', 'User deleted.');
+        if (! $user->tenants()->exists()) {
+            $user->delete();
+        }
+
+        return redirect()->route('settings.users.index')->with('success', 'User removed from workspace.');
+    }
+
+    private function assertTenantMember(User $user): void
+    {
+        $exists = $this->tenantUsersQuery()->where('users.id', $user->id)->exists();
+
+        if (! $exists) {
+            abort(404);
+        }
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<User, \App\Models\Tenant>
+     */
+    private function tenantUsersQuery()
+    {
+        return TenantContext::required()->users()->with('role');
     }
 
     /**
@@ -143,7 +169,7 @@ class UserController extends Controller
         }
 
         if ($user->isOwner() && $roleId !== $user->role_id) {
-            $ownerCount = User::query()->whereHas('role', fn ($q) => $q->where('slug', 'owner'))->count();
+            $ownerCount = $this->tenantUsersQuery()->whereHas('role', fn ($q) => $q->where('slug', 'owner'))->count();
             if ($ownerCount <= 1) {
                 abort(403, 'At least one owner account must remain.');
             }
@@ -161,7 +187,7 @@ class UserController extends Controller
         }
 
         if ($user->isOwner()) {
-            $ownerCount = User::query()->whereHas('role', fn ($q) => $q->where('slug', 'owner'))->count();
+            $ownerCount = $this->tenantUsersQuery()->whereHas('role', fn ($q) => $q->where('slug', 'owner'))->count();
             if ($ownerCount <= 1) {
                 abort(403, 'At least one owner account must remain.');
             }
