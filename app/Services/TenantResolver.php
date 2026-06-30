@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Tenant;
 use App\Models\TenantDomain;
+use App\Models\User;
 use App\Support\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,15 +14,35 @@ class TenantResolver
     public function resolve(Request $request): ?Tenant
     {
         if ($tenant = $this->resolveFromHost($request->getHost())) {
-            return $tenant;
+            return $this->ensureAccessible($request, $tenant);
+        }
+
+        // Central domain (e.g. opswiki.example.com): always use the default workspace.
+        // Prevents stale session / extra empty signup workspaces from hiding legacy data.
+        if ($this->isCentralHost($request->getHost())) {
+            if ($default = $this->defaultTenant()) {
+                if ($this->canAccess($request->user(), $default)) {
+                    return $default;
+                }
+            }
         }
 
         if ($tenantId = $request->session()->get('tenant_id')) {
-            return Tenant::find($tenantId);
+            $sessionTenant = Tenant::find($tenantId);
+
+            if ($sessionTenant && $this->canAccess($request->user(), $sessionTenant)) {
+                return $sessionTenant;
+            }
         }
 
         if ($user = $request->user()) {
-            $membership = $user->tenants()->first();
+            $default = $this->defaultTenant();
+
+            if ($default && $user->tenants()->where('tenants.id', $default->id)->exists()) {
+                return $default;
+            }
+
+            $membership = $user->tenants()->orderBy('tenant_user.id')->first();
 
             if ($membership) {
                 return $membership;
@@ -77,5 +98,35 @@ class TenantResolver
     {
         $request->session()->put('tenant_id', $tenant->id);
         TenantContext::set($tenant);
+    }
+
+    public function isCentralHost(string $host): bool
+    {
+        $host = Str::lower($host);
+        $central = Str::lower((string) config('saas.central_domain'));
+
+        return $host === $central || $host === 'localhost' || $host === '127.0.0.1';
+    }
+
+    private function ensureAccessible(Request $request, Tenant $tenant): ?Tenant
+    {
+        if ($this->canAccess($request->user(), $tenant)) {
+            return $tenant;
+        }
+
+        return $this->defaultTenant();
+    }
+
+    private function canAccess(?User $user, Tenant $tenant): bool
+    {
+        if (! $user) {
+            return true;
+        }
+
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        return $user->tenants()->where('tenants.id', $tenant->id)->exists();
     }
 }

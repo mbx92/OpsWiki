@@ -26,6 +26,11 @@ class EnsureTenantAccess
 
         TenantContext::set($tenant);
 
+        // Keep session aligned (fixes stale tenant_id after resolver corrections).
+        if ($request->hasSession()) {
+            $request->session()->put('tenant_id', $tenant->id);
+        }
+
         $user = $request->user();
 
         if ($user && ! $user->isSuperAdmin()) {
