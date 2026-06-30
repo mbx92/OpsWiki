@@ -90,6 +90,7 @@ class PageController extends Controller
             'slug' => ['nullable', 'string', 'max:255', TenantValidation::unique('pages', 'slug')],
             'summary' => 'nullable|string|max:500',
             'content_markdown' => 'nullable|string',
+            'content_html' => 'nullable|string',
             'category_id' => ['nullable', TenantValidation::exists('categories', 'id')],
             'status' => 'required|in:draft,review,tested,production,deprecated,archived',
             'visibility' => 'required|in:private,internal,public',
@@ -97,12 +98,18 @@ class PageController extends Controller
             'tag_names.*' => 'string|max:50',
         ], PageRelation::relatedValidationRules(), $this->linkProjectValidationRules()));
 
+        $content = $this->resolveContentForCreate(
+            $validated['content_markdown'] ?? null,
+            $validated['content_html'] ?? null,
+            $markdown,
+        );
+
         $page = Page::create([
             'title' => $validated['title'],
             'slug' => $validated['slug'] ?? Page::uniqueSlug($validated['title']),
             'summary' => $validated['summary'] ?? null,
-            'content_markdown' => $validated['content_markdown'] ?? null,
-            'content_html' => $markdown->toHtml($validated['content_markdown'] ?? null),
+            'content_markdown' => $content['content_markdown'],
+            'content_html' => $content['content_html'],
             'category_id' => $validated['category_id'] ?? null,
             'status' => $validated['status'],
             'visibility' => $validated['visibility'],
@@ -275,6 +282,24 @@ class PageController extends Controller
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
+    }
+
+    /**
+     * @return array{content_markdown: ?string, content_html: ?string}
+     */
+    private function resolveContentForCreate(?string $markdownContent, ?string $htmlContent, MarkdownService $markdown): array
+    {
+        if (filled($htmlContent) && blank($markdownContent)) {
+            return [
+                'content_markdown' => null,
+                'content_html' => $htmlContent,
+            ];
+        }
+
+        return [
+            'content_markdown' => $markdownContent,
+            'content_html' => $markdown->toHtml($markdownContent),
+        ];
     }
 
     /**

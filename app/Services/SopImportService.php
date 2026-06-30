@@ -10,13 +10,13 @@ class SopImportService
 {
     /** @var array<string, list<string>> */
     private const SECTION_ALIASES = [
-        'purpose' => ['tujuan', 'purpose'],
-        'use_case' => ['use case', 'use-case', 'kasus penggunaan'],
-        'requirements' => ['requirements', 'prasyarat', 'persyaratan'],
-        'steps' => ['steps', 'langkah', 'langkah-langkah', 'prosedur'],
-        'validation' => ['validation', 'validasi'],
-        'rollback' => ['rollback', 'pemulihan'],
-        'notes' => ['notes', 'catatan'],
+        'purpose' => ['tujuan', 'purpose', 'ringkasan'],
+        'use_case' => ['use case', 'use-case', 'kasus penggunaan', 'kapan dipakai'],
+        'requirements' => ['requirements', 'prasyarat', 'persyaratan', 'prerequisite'],
+        'steps' => ['steps', 'langkah-langkah', 'langkah', 'prosedur', 'cara kerja'],
+        'validation' => ['checklist verifikasi', 'validation', 'validasi', 'verifikasi'],
+        'rollback' => ['rollback', 'pemulihan', 'roll back'],
+        'notes' => ['notes', 'catatan', 'catatan penting'],
     ];
 
     public function __construct(
@@ -35,7 +35,7 @@ class SopImportService
         $skipped = 0;
 
         foreach ($this->files->entriesFromUploads($uploadedFiles) as $entry) {
-            $parsed = $this->parser->parse($entry['content'], self::SECTION_ALIASES, 'SOP');
+            $parsed = $this->parser->parse($entry['content'], self::SECTION_ALIASES, 'SOP', 'steps');
             $basename = pathinfo($entry['name'], PATHINFO_FILENAME);
             $title = $parsed['title'] !== '' ? $parsed['title'] : $this->parser->humanizeFilename($basename);
 
@@ -70,7 +70,12 @@ class SopImportService
      */
     public function parseContent(string $content, string $fallbackTitle): array
     {
-        $parsed = $this->parser->parse($content, self::SECTION_ALIASES, 'SOP');
+        $parsed = $this->parser->parse($content, self::SECTION_ALIASES, 'SOP', 'steps');
+
+        if ($parsed['sections'] === []) {
+            $body = preg_replace('/^#\s+.+$/m', '', $content, 1) ?? $content;
+            $parsed['sections']['steps'] = trim($body);
+        }
 
         return [
             'title' => $parsed['title'] !== '' ? $parsed['title'] : $fallbackTitle,

@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import FormHeaderActions from '@/Components/FormHeaderActions.vue';
 import LinkProjectBanner from '@/Components/LinkProjectBanner.vue';
+import ImportMdHtmlPrefill from '@/Components/ImportMdHtmlPrefill.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
@@ -41,6 +42,14 @@ watch(() => form.platform, (platform) => {
         form.language = 'sql';
     }
 });
+
+const applyImport = (data) => {
+    Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && Object.prototype.hasOwnProperty.call(form, key)) {
+            form[key] = value;
+        }
+    });
+};
 </script>
 
 <template>
@@ -60,6 +69,12 @@ watch(() => form.platform, (platform) => {
 
         <form id="snippet-create-form" @submit.prevent="form.post(route('snippets.store'))" class="mx-auto max-w-2xl space-y-4">
             <LinkProjectBanner :link-project="linkProject" />
+            <ImportMdHtmlPrefill
+                type="snippet"
+                accept=".md,.markdown,.html,.htm,.txt"
+                hint="Upload file .md, .html, atau .txt — isi code block otomatis jadi command."
+                @parsed="applyImport"
+            />
             <div class="rounded-[12px] border border-[#e5e7eb] bg-white p-6 space-y-4">
             <div>
                 <InputLabel value="Title" />

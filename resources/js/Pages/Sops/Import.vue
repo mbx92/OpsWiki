@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import FormHeaderActions from '@/Components/FormHeaderActions.vue';
 import FileDropzone from '@/Components/FileDropzone.vue';
 import FolderImportButton from '@/Components/FolderImportButton.vue';
+import ImportMarkdownGuide from '@/Components/ImportMarkdownGuide.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -103,20 +104,7 @@ const submit = () => {
                     </li>
                 </ul>
 
-                <div class="rounded-[8px] bg-[#f8f9fa] p-4 text-[13px] text-[#6b7280]">
-                    <p class="font-[600] text-[#374151]">Format markdown:</p>
-                    <pre class="mt-2 overflow-x-auto text-[12px] leading-relaxed"># SOP: Nama SOP
-
-## Tujuan
-...
-
-## Langkah-langkah
-...
-
-## Validasi
-...</pre>
-                    <p class="mt-2">Section yang dikenali: Tujuan, Use case, Requirements, Langkah, Validasi, Rollback, Notes (ID/EN).</p>
-                </div>
+                <ImportMarkdownGuide type="sop" />
             </form>
         </div>
     </AuthenticatedLayout>

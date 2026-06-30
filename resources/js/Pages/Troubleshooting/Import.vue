@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import FormHeaderActions from '@/Components/FormHeaderActions.vue';
 import FileDropzone from '@/Components/FileDropzone.vue';
 import FolderImportButton from '@/Components/FolderImportButton.vue';
+import ImportMarkdownGuide from '@/Components/ImportMarkdownGuide.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -116,17 +117,7 @@ const submit = () => {
                     </li>
                 </ul>
 
-                <div class="rounded-[8px] bg-[#f8f9fa] p-4 text-[13px] text-[#6b7280]">
-                    <p class="font-[600] text-[#374151]">Format markdown:</p>
-                    <pre class="mt-2 overflow-x-auto text-[12px] leading-relaxed"># Troubleshooting: Judul Masalah
-
-## Gejala
-...
-
-## Solusi yang Berhasil
-...</pre>
-                    <p class="mt-2">Section: Gejala, Environment, Error log, Diagnosis, Solusi, Validasi, Pencegahan (ID/EN).</p>
-                </div>
+                <ImportMarkdownGuide type="troubleshooting" />
             </form>
         </div>
     </AuthenticatedLayout>

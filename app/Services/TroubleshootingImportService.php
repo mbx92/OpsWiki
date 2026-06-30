@@ -10,15 +10,29 @@ class TroubleshootingImportService
 {
     /** @var array<string, list<string>> */
     private const SECTION_ALIASES = [
-        'symptoms' => ['gejala', 'symptoms'],
-        'environment' => ['environment', 'lingkungan'],
-        'error_log' => ['error log', 'error asli', 'error', 'log error'],
-        'suspected_causes' => ['suspected causes', 'dugaan penyebab', 'penyebab'],
-        'diagnosis_steps' => ['diagnosis steps', 'langkah diagnosis', 'diagnosis', 'langkah-langkah diagnosis'],
-        'working_solution' => ['working solution', 'solusi yang berhasil', 'solusi'],
-        'failed_attempts' => ['failed attempts', 'solusi yang tidak berhasil', 'percobaan gagal'],
-        'validation' => ['validation', 'validasi'],
-        'prevention' => ['prevention', 'pencegahan'],
+        'symptoms' => ['gejala yang terlihat', 'gejala', 'symptoms'],
+        'environment' => ['ringkasan kasus', 'environment', 'lingkungan', 'konteks'],
+        'error_log' => ['connection tracking', 'hasil test', 'error log', 'error asli', 'error', 'log error'],
+        'suspected_causes' => [
+            'root cause',
+            'akar masalah',
+            'kenapa masalah ini terjadi',
+            'dugaan penyebab',
+            'suspected causes',
+            'penyebab',
+        ],
+        'diagnosis_steps' => ['langkah diagnosis', 'diagnosis steps', 'langkah-langkah diagnosis', 'diagnosis', 'pengecekan'],
+        'working_solution' => [
+            'solusi yang disarankan',
+            'solusi cepat',
+            'solusi yang berhasil',
+            'kesimpulan akhir',
+            'working solution',
+            'solusi',
+        ],
+        'failed_attempts' => ['vlan/subnet yang gagal', 'subnet yang gagal', 'failed attempts', 'solusi yang tidak berhasil', 'percobaan gagal'],
+        'validation' => ['checklist verifikasi', 'verifikasi', 'validation', 'validasi'],
+        'prevention' => ['solusi jangka panjang', 'catatan penting', 'pencegahan', 'prevention'],
     ];
 
     public function __construct(
@@ -37,7 +51,7 @@ class TroubleshootingImportService
         $skipped = 0;
 
         foreach ($this->files->entriesFromUploads($uploadedFiles) as $entry) {
-            $parsed = $this->parser->parse($entry['content'], self::SECTION_ALIASES, 'Troubleshooting');
+            $parsed = $this->parser->parse($entry['content'], self::SECTION_ALIASES, 'Troubleshooting', 'working_solution');
             $basename = pathinfo($entry['name'], PATHINFO_FILENAME);
             $title = $parsed['title'] !== '' ? $parsed['title'] : $this->parser->humanizeFilename($basename);
 
@@ -75,7 +89,12 @@ class TroubleshootingImportService
      */
     public function parseContent(string $content, string $fallbackTitle): array
     {
-        $parsed = $this->parser->parse($content, self::SECTION_ALIASES, 'Troubleshooting');
+        $parsed = $this->parser->parse($content, self::SECTION_ALIASES, 'Troubleshooting', 'working_solution');
+
+        if ($parsed['sections'] === []) {
+            $body = preg_replace('/^#\s+.+$/m', '', $content, 1) ?? $content;
+            $parsed['sections']['working_solution'] = trim($body);
+        }
 
         return [
             'title' => $parsed['title'] !== '' ? $parsed['title'] : $fallbackTitle,

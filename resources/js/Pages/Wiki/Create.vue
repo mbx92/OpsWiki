@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import MarkdownEditor from '@/Components/MarkdownEditor.vue';
 import FormHeaderActions from '@/Components/FormHeaderActions.vue';
 import LinkProjectBanner from '@/Components/LinkProjectBanner.vue';
+import ImportMdHtmlPrefill from '@/Components/ImportMdHtmlPrefill.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -20,6 +21,7 @@ const form = useForm({
     slug: props.prefill.slug ?? '',
     summary: props.prefill.summary ?? '',
     content_markdown: props.prefill.content_markdown ?? '',
+    content_html: props.prefill.content_html ?? '',
     category_id: props.prefill.category_id ?? null,
     status: props.prefill.status ?? 'draft',
     visibility: props.prefill.visibility ?? 'private',
@@ -37,6 +39,14 @@ const addTag = () => {
 
 const removeTag = (name) => {
     form.tag_names = form.tag_names.filter(t => t !== name);
+};
+
+const applyImport = (data) => {
+    Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && Object.prototype.hasOwnProperty.call(form, key)) {
+            form[key] = value;
+        }
+    });
 };
 </script>
 
@@ -60,6 +70,7 @@ const removeTag = (name) => {
 
         <form id="wiki-create-form" @submit.prevent="form.post(route('wiki.store'))" class="space-y-4">
             <LinkProjectBanner :link-project="linkProject" />
+            <ImportMdHtmlPrefill type="wiki" @parsed="applyImport" />
             <div class="rounded-[12px] border border-[#e5e7eb] bg-white p-6 space-y-4">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>

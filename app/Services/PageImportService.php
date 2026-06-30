@@ -146,6 +146,43 @@ class PageImportService
     }
 
     /**
+     * @return array{title: string, summary: ?string, content_markdown: ?string, content_html: ?string}
+     */
+    public function parseUploadForPrefill(UploadedFile $file): array
+    {
+        $extension = strtolower($file->getClientOriginalExtension());
+        $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $content = $file->get();
+
+        if (in_array($extension, ['md', 'markdown'], true)) {
+            $title = $this->extractMarkdownTitle($content) ?? $this->humanizeFilename($basename);
+            $markdown = $content;
+            $html = $this->markdown->toHtml($markdown);
+
+            return [
+                'title' => $title,
+                'summary' => $this->extractSummary($html, $markdown),
+                'content_markdown' => $markdown,
+                'content_html' => null,
+            ];
+        }
+
+        if (in_array($extension, ['html', 'htm'], true)) {
+            $title = $this->extractHtmlTitle($content) ?? $this->humanizeFilename($basename);
+            $html = $this->htmlParser->parse($content, $title);
+
+            return [
+                'title' => $title,
+                'summary' => $this->extractSummary($html, null),
+                'content_markdown' => null,
+                'content_html' => $html,
+            ];
+        }
+
+        throw new \InvalidArgumentException('Unsupported file type.');
+    }
+
+    /**
      * @param  array{name: string, content: string, extension: string}  $entry
      */
     private function createPageFromEntry(Book $book, array $entry, int $userId, int $sortOrder, string $status): Page

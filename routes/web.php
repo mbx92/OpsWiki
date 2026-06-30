@@ -7,6 +7,7 @@ use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ContentImportParseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlitchTipSettingsController;
 use App\Http\Controllers\IntegrationsController;
@@ -72,6 +73,10 @@ Route::get('/share/pages/{page:slug}', [PublicShareController::class, 'showPage'
 Route::middleware(['auth', 'verified', 'active', 'tenant'])->group(function () {
     Route::get('/search', [SearchController::class, 'index'])->name('search.index');
     Route::get('/search/query', [SearchController::class, 'query'])->name('search.query');
+
+    Route::post('/import/parse/{type}', ContentImportParseController::class)
+        ->whereIn('type', ['wiki', 'sop', 'troubleshooting', 'snippet'])
+        ->name('import.parse');
 
     Route::get('/upgrade/pro', [UpgradeController::class, 'pro'])->name('upgrade.pro');
     Route::get('/upgrade/team', [UpgradeController::class, 'team'])->name('upgrade.team');
