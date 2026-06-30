@@ -3,26 +3,34 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import MarkdownEditor from '@/Components/MarkdownEditor.vue';
 import FormHeaderActions from '@/Components/FormHeaderActions.vue';
+import LinkProjectBanner from '@/Components/LinkProjectBanner.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-defineProps({ tags: Array, statuses: Array, severities: Array });
+const props = defineProps({
+    tags: Array,
+    statuses: Array,
+    severities: Array,
+    linkProject: Object,
+    prefill: { type: Object, default: () => ({}) },
+});
 
 const tagInput = ref('');
 const form = useForm({
-    title: '',
-    symptoms: '',
-    environment: '',
-    error_log: '',
-    suspected_causes: '',
-    diagnosis_steps: '',
-    working_solution: '',
-    failed_attempts: '',
-    validation: '',
-    prevention: '',
-    severity: 'medium',
-    status: 'open',
-    tag_names: [],
+    title: props.prefill.title ?? '',
+    symptoms: props.prefill.symptoms ?? '',
+    environment: props.prefill.environment ?? '',
+    error_log: props.prefill.error_log ?? '',
+    suspected_causes: props.prefill.suspected_causes ?? '',
+    diagnosis_steps: props.prefill.diagnosis_steps ?? '',
+    working_solution: props.prefill.working_solution ?? '',
+    failed_attempts: props.prefill.failed_attempts ?? '',
+    validation: props.prefill.validation ?? '',
+    prevention: props.prefill.prevention ?? '',
+    severity: props.prefill.severity ?? 'medium',
+    status: props.prefill.status ?? 'open',
+    tag_names: props.prefill.tag_names ?? [],
+    link_project: props.linkProject?.slug ?? '',
 });
 
 const submit = () => form.post(route('troubleshooting.store'));
@@ -47,6 +55,7 @@ const addTag = () => {
         </template>
 
         <form id="ts-create-form" @submit.prevent="submit" class="space-y-4">
+            <LinkProjectBanner :link-project="linkProject" />
             <div class="rounded-[12px] border border-[#e5e7eb] bg-white p-6 space-y-4">
                 <div class="grid gap-4 sm:grid-cols-3">
                     <div class="sm:col-span-1">

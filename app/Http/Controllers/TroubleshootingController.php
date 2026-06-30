@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksContentToProject;
 use App\Models\PageRelation;
 use App\Models\Tag;
 use App\Models\TroubleshootingCase;
 use App\Services\ActivityLogService;
+use App\Services\ProjectDocumentationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,6 +15,8 @@ use Inertia\Response;
 
 class TroubleshootingController extends Controller
 {
+    use LinksContentToProject;
+
     public function index(Request $request): Response
     {
         $query = TroubleshootingCase::with('tags')->latest();
@@ -41,12 +45,21 @@ class TroubleshootingController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        $context = $this->projectCreateContext($request);
+        $prefill = $context['prefill'];
+
+        if ($request->filled('title')) {
+            $prefill['title'] = (string) $request->query('title');
+        }
+
         return Inertia::render('Troubleshooting/Create', [
             'tags' => Tag::orderBy('name')->get(['id', 'name']),
             'statuses' => ['open', 'investigating', 'solved', 'workaround', 'failed', 'archived'],
             'severities' => ['low', 'medium', 'high', 'critical'],
+            'linkProject' => $context['linkProject'],
+            'prefill' => $prefill,
         ]);
     }
 
@@ -61,7 +74,13 @@ class TroubleshootingController extends Controller
         ]);
 
         $case->syncTags($validated['tag_names'] ?? []);
+        $this->linkProjectFromRequest($request, $case);
         $activity->log($request->user(), 'created', $case);
+
+        $linkProject = app(ProjectDocumentationService::class)->resolveFromRequest($request);
+        if ($linkProject) {
+            return redirect()->route('projects.show', $linkProject)->with('success', 'Case created and linked to project.');
+        }
 
         return redirect()->route('troubleshooting.show', $case)->with('success', 'Case created.');
     }
@@ -136,6 +155,6 @@ class TroubleshootingController extends Controller
             'status' => 'required|in:open,investigating,solved,workaround,failed,archived',
             'tag_names' => 'nullable|array',
             'tag_names.*' => 'string|max:50',
-        ], PageRelation::relatedValidationRules()));
+        ], PageRelation::relatedValidationRules(), $this->linkProjectValidationRules()));
     }
 }

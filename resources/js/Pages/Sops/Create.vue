@@ -3,23 +3,30 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import MarkdownEditor from '@/Components/MarkdownEditor.vue';
 import FormHeaderActions from '@/Components/FormHeaderActions.vue';
+import LinkProjectBanner from '@/Components/LinkProjectBanner.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-defineProps({ tags: Array, statuses: Array });
+const props = defineProps({
+    tags: Array,
+    statuses: Array,
+    linkProject: Object,
+    prefill: { type: Object, default: () => ({}) },
+});
 
 const tagInput = ref('');
 const form = useForm({
-    title: '',
-    purpose: '',
-    use_case: '',
-    requirements: '',
-    steps: '',
-    validation: '',
-    rollback: '',
-    notes: '',
-    status: 'draft',
-    tag_names: [],
+    title: props.prefill.title ?? '',
+    purpose: props.prefill.purpose ?? '',
+    use_case: props.prefill.use_case ?? '',
+    requirements: props.prefill.requirements ?? '',
+    steps: props.prefill.steps ?? '',
+    validation: props.prefill.validation ?? '',
+    rollback: props.prefill.rollback ?? '',
+    notes: props.prefill.notes ?? '',
+    status: props.prefill.status ?? 'draft',
+    tag_names: props.prefill.tag_names ?? [],
+    link_project: props.linkProject?.slug ?? '',
 });
 
 const submit = () => form.post(route('sops.store'));
@@ -44,6 +51,7 @@ const addTag = () => {
         </template>
 
         <form id="sop-create-form" @submit.prevent="submit" class="space-y-4">
+            <LinkProjectBanner :link-project="linkProject" />
             <div class="rounded-[12px] border border-[#e5e7eb] bg-white p-6 space-y-4">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>

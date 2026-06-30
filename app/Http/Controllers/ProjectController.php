@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksContentToProject;
 use App\Models\PageRelation;
 use App\Models\Project;
 use App\Models\Tag;
 use App\Services\ActivityLogService;
+use App\Services\ProjectDocumentationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,6 +15,8 @@ use Inertia\Response;
 
 class ProjectController extends Controller
 {
+    use LinksContentToProject;
+
     public function index(Request $request): Response
     {
         $query = Project::with('tags')->latest();
@@ -58,13 +62,14 @@ class ProjectController extends Controller
         return redirect()->route('projects.show', $project)->with('success', 'Project created.');
     }
 
-    public function show(Project $project): Response
+    public function show(Request $request, Project $project, ProjectDocumentationService $documentation): Response
     {
         $project->load(['tags', 'creator']);
 
         return Inertia::render('Projects/Show', [
             'project' => $project,
-            'related' => \App\Models\PageRelation::relatedItemsFor($project),
+            ...$documentation->showPayload($project, $request->user()),
+            'canManage' => $request->user()?->hasPermission('projects.manage') ?? false,
         ]);
     }
 
@@ -120,6 +125,9 @@ class ProjectController extends Controller
             'staging_url' => 'nullable|url|max:500',
             'server_location' => 'nullable|string|max:255',
             'environment_notes' => 'nullable|string',
+            'deployment_notes' => 'nullable|string',
+            'database_notes' => 'nullable|string',
+            'backup_notes' => 'nullable|string',
             'tag_names' => 'nullable|array',
             'tag_names.*' => 'string|max:50',
         ], PageRelation::relatedValidationRules()));

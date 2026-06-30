@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksContentToProject;
 use App\Models\PageRelation;
 use App\Models\Sop;
 use App\Models\Tag;
 use App\Services\ActivityLogService;
+use App\Services\ProjectDocumentationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,6 +15,8 @@ use Inertia\Response;
 
 class SopController extends Controller
 {
+    use LinksContentToProject;
+
     public function index(Request $request): Response
     {
         $query = Sop::with('tags')->latest();
@@ -35,11 +39,20 @@ class SopController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        $context = $this->projectCreateContext($request);
+        $prefill = $context['prefill'];
+
+        if ($request->filled('title')) {
+            $prefill['title'] = (string) $request->query('title');
+        }
+
         return Inertia::render('Sops/Create', [
             'tags' => Tag::orderBy('name')->get(['id', 'name']),
             'statuses' => ['draft', 'review', 'tested', 'production', 'deprecated', 'archived'],
+            'linkProject' => $context['linkProject'],
+            'prefill' => $prefill,
         ]);
     }
 
@@ -54,7 +67,13 @@ class SopController extends Controller
         ]);
 
         $sop->syncTags($validated['tag_names'] ?? []);
+        $this->linkProjectFromRequest($request, $sop);
         $activity->log($request->user(), 'created', $sop);
+
+        $linkProject = app(ProjectDocumentationService::class)->resolveFromRequest($request);
+        if ($linkProject) {
+            return redirect()->route('projects.show', $linkProject)->with('success', 'SOP created and linked to project.');
+        }
 
         return redirect()->route('sops.show', $sop)->with('success', 'SOP created.');
     }
@@ -125,6 +144,6 @@ class SopController extends Controller
             'status' => 'required|in:draft,review,tested,production,deprecated,archived',
             'tag_names' => 'nullable|array',
             'tag_names.*' => 'string|max:50',
-        ], PageRelation::relatedValidationRules()));
+        ], PageRelation::relatedValidationRules(), $this->linkProjectValidationRules()));
     }
 }

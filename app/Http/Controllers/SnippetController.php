@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksContentToProject;
 use App\Models\Category;
 use App\Models\Snippet;
 use App\Models\Tag;
 use App\Services\ActivityLogService;
+use App\Services\ProjectDocumentationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,6 +15,8 @@ use Inertia\Response;
 
 class SnippetController extends Controller
 {
+    use LinksContentToProject;
+
     public function index(Request $request): Response
     {
         $query = Snippet::with(['category', 'tags'])->latest();
@@ -37,22 +41,31 @@ class SnippetController extends Controller
             'snippets' => $query->paginate(20)->withQueryString(),
             'categories' => Category::orderBy('sort_order')->get(['id', 'name']),
             'filters' => $request->only(['q', 'platform', 'favorite']),
-            'platforms' => ['linux', 'macos', 'windows', 'docker', 'proxmox', 'postgresql', 'minio', 'cloudflare', 'tailscale'],
+            'platforms' => Snippet::platformOptions(),
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        $context = $this->projectCreateContext($request);
+        $prefill = $context['prefill'];
+
+        if ($request->filled('title')) {
+            $prefill['title'] = (string) $request->query('title');
+        }
+
         return Inertia::render('Snippets/Create', [
             'categories' => Category::orderBy('sort_order')->get(['id', 'name']),
             'tags' => Tag::orderBy('name')->get(['id', 'name']),
-            'platforms' => ['linux', 'macos', 'windows', 'docker', 'proxmox', 'postgresql', 'minio', 'cloudflare', 'tailscale'],
+            'platforms' => Snippet::platformOptions(),
+            'linkProject' => $context['linkProject'],
+            'prefill' => $prefill,
         ]);
     }
 
     public function store(Request $request, ActivityLogService $activity): RedirectResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'command' => 'required|string',
@@ -63,7 +76,7 @@ class SnippetController extends Controller
             'is_favorite' => 'boolean',
             'tag_names' => 'nullable|array',
             'tag_names.*' => 'string|max:50',
-        ]);
+        ], $this->linkProjectValidationRules()));
 
         $snippet = Snippet::create([
             ...$validated,
@@ -74,7 +87,13 @@ class SnippetController extends Controller
             $snippet->syncTags($validated['tag_names']);
         }
 
+        $this->linkProjectFromRequest($request, $snippet);
         $activity->log($request->user(), 'created', $snippet);
+
+        $linkProject = app(ProjectDocumentationService::class)->resolveFromRequest($request);
+        if ($linkProject) {
+            return redirect()->route('projects.show', $linkProject)->with('success', 'Snippet created and linked to project.');
+        }
 
         return redirect()->route('snippets.index')->with('success', 'Snippet created.');
     }
@@ -87,7 +106,7 @@ class SnippetController extends Controller
             'snippet' => $snippet,
             'categories' => Category::orderBy('sort_order')->get(['id', 'name']),
             'tags' => Tag::orderBy('name')->get(['id', 'name']),
-            'platforms' => ['linux', 'macos', 'windows', 'docker', 'proxmox', 'postgresql', 'minio', 'cloudflare', 'tailscale'],
+            'platforms' => Snippet::platformOptions(),
         ]);
     }
 

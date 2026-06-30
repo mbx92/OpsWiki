@@ -24,6 +24,9 @@ class Project extends Model
         'staging_url',
         'server_location',
         'environment_notes',
+        'deployment_notes',
+        'database_notes',
+        'backup_notes',
         'created_by',
     ];
 

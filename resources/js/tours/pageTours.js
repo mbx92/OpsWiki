@@ -252,9 +252,60 @@ export const pageTourCatalog = [
         ],
     },
     {
+        id: 'projects-show',
+        label: 'Project hub',
+        match: (name) => name === 'projects.show',
+        steps: [
+            {
+                popover: {
+                    title: 'Pusat dokumentasi proyek',
+                    description: 'Setiap proyek adalah hub untuk semua dokumentasi sistem: Wiki, SOP, snippet, dan troubleshooting — plus catatan infrastruktur.',
+                    side: 'over',
+                    align: 'center',
+                },
+            },
+            {
+                element: '[data-page-tour="project-doc-stats"]',
+                popover: {
+                    title: 'Ringkasan dokumentasi',
+                    description: 'Jumlah total dokumen per tipe — tanpa card terpisah, cukup satu baris ringkas di header.',
+                    side: 'bottom',
+                    align: 'start',
+                },
+            },
+            {
+                element: '[data-page-tour="project-quick-create"]',
+                popover: {
+                    title: 'Quick create',
+                    description: 'Buat Wiki overview, SOP deploy, snippet, atau case troubleshooting — otomatis ditautkan ke proyek ini.',
+                    side: 'left',
+                    align: 'start',
+                },
+            },
+            {
+                element: '[data-page-tour="project-doc-groups"]',
+                popover: {
+                    title: 'Dokumentasi terkait',
+                    description: 'Semua konten yang ditautkan ke proyek, dikelompokkan per modul. Klik untuk membuka.',
+                    side: 'right',
+                    align: 'start',
+                },
+            },
+            {
+                element: '[data-page-tour="project-infra-notes"]',
+                popover: {
+                    title: 'Catatan infrastruktur',
+                    description: 'Environment, deployment, database, dan backup — informasi operasional yang tidak perlu jadi halaman Wiki terpisah.',
+                    side: 'left',
+                    align: 'start',
+                },
+            },
+        ],
+    },
+    {
         id: 'projects',
         label: 'Projects',
-        match: (name) => Boolean(name?.startsWith('projects.')),
+        match: (name) => Boolean(name?.startsWith('projects.') && name !== 'projects.show'),
         steps: [
             {
                 popover: {
@@ -277,7 +328,7 @@ export const pageTourCatalog = [
                 element: '[data-page-tour="page-content"]',
                 popover: {
                     title: 'Detail proyek',
-                    description: 'Buka proyek untuk melihat metadata lengkap dan update status lifecycle (planning → production).',
+                    description: 'Buka proyek untuk melihat hub dokumentasi lengkap dan update status lifecycle (planning → production).',
                     side: 'top',
                     align: 'start',
                 },

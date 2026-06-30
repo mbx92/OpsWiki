@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LinksContentToProject;
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Page;
@@ -13,6 +14,7 @@ use App\Services\MarkdownService;
 use App\Services\MinioArchiveService;
 use App\Services\PageVersionService;
 use App\Services\PlanGateService;
+use App\Services\ProjectDocumentationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
@@ -21,6 +23,8 @@ use Inertia\Response;
 
 class PageController extends Controller
 {
+    use LinksContentToProject;
+
     public function index(Request $request): Response
     {
         $query = Page::with(['category', 'tags', 'book'])->latest();
@@ -55,11 +59,24 @@ class PageController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request, ProjectDocumentationService $documentation): Response
     {
+        $context = $this->projectCreateContext($request);
+        $prefill = $context['prefill'];
+        $project = $documentation->resolveFromRequest($request);
+
+        if ($project && $request->filled('template')) {
+            $prefill = array_merge($prefill, $documentation->wikiPrefill(
+                (string) $request->query('template'),
+                $project,
+            ));
+        }
+
         return Inertia::render('Wiki/Create', [
             'categories' => Category::orderBy('sort_order')->get(['id', 'name']),
             'tags' => Tag::orderBy('name')->get(['id', 'name']),
+            'linkProject' => $context['linkProject'],
+            'prefill' => $prefill,
         ]);
     }
 
@@ -77,7 +94,7 @@ class PageController extends Controller
             'visibility' => 'required|in:private,internal,public',
             'tag_names' => 'nullable|array',
             'tag_names.*' => 'string|max:50',
-        ], PageRelation::relatedValidationRules()));
+        ], PageRelation::relatedValidationRules(), $this->linkProjectValidationRules()));
 
         $page = Page::create([
             'title' => $validated['title'],
@@ -101,7 +118,14 @@ class PageController extends Controller
             PageRelation::syncFor($page, $validated['related']);
         }
 
+        $this->linkProjectFromRequest($request, $page);
+
         $activity->log($request->user(), 'created', $page);
+
+        $linkProject = app(ProjectDocumentationService::class)->resolveFromRequest($request);
+        if ($linkProject) {
+            return redirect()->route('projects.show', $linkProject)->with('success', 'Page created and linked to project.');
+        }
 
         return redirect()->route('wiki.show', $page)->with('success', 'Page created.');
     }

@@ -3,21 +3,28 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import MarkdownEditor from '@/Components/MarkdownEditor.vue';
 import FormHeaderActions from '@/Components/FormHeaderActions.vue';
+import LinkProjectBanner from '@/Components/LinkProjectBanner.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-defineProps({ categories: Array, tags: Array });
+const props = defineProps({
+    categories: Array,
+    tags: Array,
+    linkProject: Object,
+    prefill: { type: Object, default: () => ({}) },
+});
 
 const tagInput = ref('');
 const form = useForm({
-    title: '',
-    slug: '',
-    summary: '',
-    content_markdown: '',
-    category_id: null,
-    status: 'draft',
-    visibility: 'private',
-    tag_names: [],
+    title: props.prefill.title ?? '',
+    slug: props.prefill.slug ?? '',
+    summary: props.prefill.summary ?? '',
+    content_markdown: props.prefill.content_markdown ?? '',
+    category_id: props.prefill.category_id ?? null,
+    status: props.prefill.status ?? 'draft',
+    visibility: props.prefill.visibility ?? 'private',
+    tag_names: props.prefill.tag_names ?? [],
+    link_project: props.linkProject?.slug ?? '',
 });
 
 const addTag = () => {
@@ -52,6 +59,7 @@ const removeTag = (name) => {
         </template>
 
         <form id="wiki-create-form" @submit.prevent="form.post(route('wiki.store'))" class="space-y-4">
+            <LinkProjectBanner :link-project="linkProject" />
             <div class="rounded-[12px] border border-[#e5e7eb] bg-white p-6 space-y-4">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>

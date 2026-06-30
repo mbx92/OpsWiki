@@ -60,7 +60,7 @@ const destroy = async () => {
                     <InputLabel value="Platform" />
                     <select v-model="form.platform" class="mt-1.5 block w-full rounded-[8px] border border-[#e5e7eb] px-3 py-2 text-[14px]">
                         <option :value="null">Any</option>
-                        <option v-for="p in platforms" :key="p" :value="p">{{ p }}</option>
+                        <option v-for="p in platforms" :key="p.value" :value="p.value">{{ p.label }}</option>
                     </select>
                 </div>
                 <div>

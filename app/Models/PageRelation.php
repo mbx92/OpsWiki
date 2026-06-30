@@ -19,10 +19,21 @@ class PageRelation extends Model
     public const TYPE_PROJECTS = 'projects';
 
     /** @var array<string, string> */
+    public const DISPLAY_LABELS = [
+        self::TYPE_PAGES => 'Wiki',
+        self::TYPE_SOPS => 'SOPs',
+        self::TYPE_TROUBLESHOOTING => 'Troubleshooting',
+        self::TYPE_SNIPPETS => 'Snippets',
+        self::TYPE_TOOLS => 'Tools',
+        self::TYPE_PROJECTS => 'Projects',
+    ];
+
+    /** @var array<string, string> */
     public const LINKABLE_TYPES = [
         self::TYPE_PAGES => 'Wiki',
         self::TYPE_SOPS => 'SOP',
         self::TYPE_TROUBLESHOOTING => 'Troubleshooting',
+        self::TYPE_SNIPPETS => 'Snippet',
         self::TYPE_PROJECTS => 'Project',
     ];
 
@@ -78,6 +89,7 @@ class PageRelation extends Model
             ->get();
 
         $items = [];
+        $seen = [];
 
         foreach ($relations as $relation) {
             $isSource = $relation->source_type === $type && (int) $relation->source_id === (int) $id;
@@ -85,6 +97,11 @@ class PageRelation extends Model
             $otherId = $isSource ? $relation->target_id : $relation->source_id;
 
             if ($otherType === $type && (int) $otherId === (int) $id) {
+                continue;
+            }
+
+            $dedupeKey = $otherType.':'.$otherId;
+            if (isset($seen[$dedupeKey])) {
                 continue;
             }
 
@@ -98,10 +115,89 @@ class PageRelation extends Model
                 continue;
             }
 
+            $seen[$dedupeKey] = true;
             $items[] = self::formatRelatedItem($otherType, $record);
         }
 
         return $items;
+    }
+
+    /**
+     * @return list<array{type: string, label: string, items: list<array{id: int, type: string, title: string, slug: string|null, url: string|null}>}>
+     */
+    public static function relatedItemsGroupedFor(Model $model): array
+    {
+        $items = self::relatedItemsFor($model);
+        $grouped = [];
+
+        foreach ($items as $item) {
+            $type = $item['type'];
+            if (! isset($grouped[$type])) {
+                $grouped[$type] = [
+                    'type' => $type,
+                    'label' => self::DISPLAY_LABELS[$type]
+                        ?? self::LINKABLE_TYPES[$type]
+                        ?? ucfirst(str_replace('_', ' ', $type)),
+                    'items' => [],
+                ];
+            }
+            $grouped[$type]['items'][] = $item;
+        }
+
+        $order = [
+            self::TYPE_PAGES,
+            self::TYPE_SOPS,
+            self::TYPE_TROUBLESHOOTING,
+            self::TYPE_SNIPPETS,
+            self::TYPE_TOOLS,
+            self::TYPE_PROJECTS,
+        ];
+
+        $result = [];
+        foreach ($order as $type) {
+            if (isset($grouped[$type])) {
+                $result[] = $grouped[$type];
+            }
+        }
+
+        return $result;
+    }
+
+    public static function linkTo(Model $source, Model $target): void
+    {
+        $sourceType = self::typeForModel($source);
+        $targetType = self::typeForModel($target);
+
+        if ($sourceType === $targetType && (int) $source->getKey() === (int) $target->getKey()) {
+            return;
+        }
+
+        $exists = static::query()
+            ->where(function ($q) use ($sourceType, $source, $targetType, $target) {
+                $q->where('source_type', $sourceType)
+                    ->where('source_id', $source->getKey())
+                    ->where('target_type', $targetType)
+                    ->where('target_id', $target->getKey());
+            })
+            ->orWhere(function ($q) use ($sourceType, $source, $targetType, $target) {
+                $q->where('source_type', $targetType)
+                    ->where('source_id', $target->getKey())
+                    ->where('target_type', $sourceType)
+                    ->where('target_id', $source->getKey());
+            })
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        static::create([
+            'source_type' => $sourceType,
+            'source_id' => $source->getKey(),
+            'target_type' => $targetType,
+            'target_id' => $target->getKey(),
+            'relation_type' => 'related',
+        ]);
     }
 
     /**
@@ -172,8 +268,12 @@ class PageRelation extends Model
         $id = $model->getKey();
 
         static::query()
-            ->where('source_type', $type)
-            ->where('source_id', $id)
+            ->where(function ($q) use ($type, $id) {
+                $q->where('source_type', $type)->where('source_id', $id);
+            })
+            ->orWhere(function ($q) use ($type, $id) {
+                $q->where('target_type', $type)->where('target_id', $id);
+            })
             ->delete();
 
         foreach ($related as $item) {
@@ -181,13 +281,17 @@ class PageRelation extends Model
                 continue;
             }
 
-            static::create([
-                'source_type' => $type,
-                'source_id' => $id,
-                'target_type' => $item['type'],
-                'target_id' => $item['id'],
-                'relation_type' => 'related',
-            ]);
+            $class = self::resolveModel($item['type']);
+            if (! $class) {
+                continue;
+            }
+
+            $target = $class::find($item['id']);
+            if (! $target) {
+                continue;
+            }
+
+            self::linkTo($model, $target);
         }
     }
 
