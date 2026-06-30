@@ -54,6 +54,7 @@ class DiagnoseTenantCommand extends Command
             if ($user) {
                 $this->newLine();
                 $this->info("User: {$user->email} (#{$user->id})");
+                $this->line('  super_admin: '.($user->is_super_admin ? 'yes' : 'no'));
                 $memberships = $user->tenants()->get(['tenants.id', 'tenants.slug', 'tenants.name']);
 
                 foreach ($memberships as $tenant) {
@@ -61,10 +62,21 @@ class DiagnoseTenantCommand extends Command
                 }
 
                 $sessionNote = $memberships->count() > 1
-                    ? 'Multiple workspaces — central domain now forces default workspace.'
+                    ? 'Multiple workspaces — central domain forces default workspace.'
                     : 'Single workspace membership.';
                 $this->line('  '.$sessionNote);
             }
+        }
+
+        $this->newLine();
+        $this->info('Sample pages on default tenant');
+        if (Schema::hasTable('pages')) {
+            DB::table('pages')
+                ->where('tenant_id', $default->id)
+                ->orderBy('id')
+                ->limit(5)
+                ->get(['id', 'slug', 'title'])
+                ->each(fn ($page) => $this->line("  /wiki/{$page->slug} — {$page->title}"));
         }
 
         $nullPageCount = Schema::hasColumn('pages', 'tenant_id')
