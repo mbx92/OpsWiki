@@ -17,6 +17,13 @@ npm install && npm run build
 php artisan serve
 ```
 
+## Documentation
+
+User guide (Indonesian):
+
+- [Panduan Pengguna (Markdown)](docs/panduan-pengguna.md)
+- [Panduan Pengguna (HTML)](docs/panduan-pengguna.html) — buka di browser
+
 ## Production (Coolify)
 
 Copy environment from `.env.coolify.example`, then deploy with `docker-compose.yml` or `Dockerfile`.
