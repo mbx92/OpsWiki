@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Category;
 use App\Models\Page;
 use App\Services\ActivityLogService;
+use App\Support\TenantValidation;
 use App\Services\MinioArchiveService;
 use App\Services\PageImportService;
 use App\Services\StaticExportService;
@@ -28,7 +29,7 @@ class BookController extends Controller
         ]);
     }
 
-    public function show(Book $book): Response
+    public function show(Request $request, Book $book): Response
     {
         $book->load(['pages' => fn ($q) => $q->orderBy('sort_order'), 'category', 'creator']);
 
@@ -39,7 +40,54 @@ class BookController extends Controller
                 ->whereNull('book_id')
                 ->orderBy('title')
                 ->get(['id', 'title', 'slug', 'status']),
+            'canManage' => $request->user()?->hasPermission('books.manage') ?? false,
         ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Books/Create', [
+            'categories' => Category::orderBy('sort_order')->get(['id', 'name']),
+        ]);
+    }
+
+    public function store(Request $request, ActivityLogService $activity): RedirectResponse
+    {
+        $validated = $this->validatedBook($request);
+
+        $book = Book::create([
+            ...$validated,
+            'slug' => Book::uniqueSlug($validated['title']),
+            'created_by' => $request->user()->id,
+        ]);
+
+        $activity->log($request->user(), 'created', $book);
+
+        return redirect()->route('books.show', $book)->with('success', 'Book created.');
+    }
+
+    public function edit(Book $book): Response
+    {
+        $book->load('category');
+
+        return Inertia::render('Books/Edit', [
+            'book' => $book,
+            'categories' => Category::orderBy('sort_order')->get(['id', 'name']),
+        ]);
+    }
+
+    public function update(Request $request, Book $book, ActivityLogService $activity): RedirectResponse
+    {
+        $validated = $this->validatedBook($request);
+
+        $book->update([
+            ...$validated,
+            'slug' => Book::uniqueSlug($validated['title'], $book->id),
+        ]);
+
+        $activity->log($request->user(), 'updated', $book);
+
+        return redirect()->route('books.show', $book)->with('success', 'Book updated.');
     }
 
     public function attachPages(Request $request, Book $book): RedirectResponse
@@ -182,6 +230,19 @@ class BookController extends Controller
         return response($content, 200, [
             'Content-Type' => 'application/zip',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    /**
+     * @return array{title: string, description: ?string, category_id: ?int, status: string}
+     */
+    private function validatedBook(Request $request): array
+    {
+        return $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'category_id' => ['nullable', TenantValidation::exists('categories', 'id')],
+            'status' => 'required|in:draft,review,tested,production,deprecated,archived',
         ]);
     }
 }

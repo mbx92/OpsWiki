@@ -6,7 +6,7 @@ import { confirmDelete } from '@/Composables/useConfirm';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const props = defineProps({ book: Object, publicUrl: String, availablePages: Array });
+const props = defineProps({ book: Object, publicUrl: String, availablePages: Array, canManage: Boolean });
 
 const shareOpen = ref(false);
 const selectedPageIds = ref([]);
@@ -54,6 +54,13 @@ const movePage = (page, direction) => {
                     <h1 class="text-[20px] font-[700] text-[#111111]" style="font-family: 'Manrope', sans-serif;">{{ book.title }}</h1>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
+                    <Link
+                        v-if="canManage"
+                        :href="route('books.edit', book.slug)"
+                        class="rounded-[8px] border border-[#e5e7eb] px-3 py-1.5 text-[13px] font-[500] text-[#374151] transition-colors hover:bg-[#f8f9fa] hover:text-[#111111]"
+                    >
+                        Edit
+                    </Link>
                     <button
                         type="button"
                         @click="shareOpen = true"
@@ -136,9 +143,15 @@ const movePage = (page, direction) => {
             </aside>
 
             <div class="space-y-3 lg:col-span-3">
-                <p v-if="book.description" class="text-[15px] text-[#6b7280]">{{ book.description }}</p>
+                <div v-if="book.description" class="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
+                    <p class="whitespace-pre-wrap text-[15px] leading-relaxed text-[#374151]">{{ book.description }}</p>
+                </div>
+                <p v-else-if="canManage" class="text-[14px] text-[#898989]">
+                    Belum ada description.
+                    <Link :href="route('books.edit', book.slug)" class="font-[500] text-[#111111] hover:underline">Tambahkan</Link>
+                </p>
 
-                <div v-if="availablePages.length" class="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
+                <div v-if="canManage && availablePages.length" class="rounded-[12px] border border-[#e5e7eb] bg-white p-5">
                     <h2 class="text-[14px] font-[600] text-[#111111]">Add existing wiki pages</h2>
                     <p class="mt-1 text-[13px] text-[#6b7280]">Halaman standalone yang sudah ada bisa ditambahkan ke book ini.</p>
                     <div class="mt-3 max-h-48 space-y-1 overflow-y-auto rounded-[8px] border border-[#e5e7eb] p-3">

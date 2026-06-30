@@ -1,9 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { Head, Link } from '@inertiajs/vue3';
 
 defineProps({ books: Array });
+
+const { can } = usePermissions();
 </script>
 
 <template>
@@ -12,9 +15,14 @@ defineProps({ books: Array });
         <template #header>
             <div class="flex items-center justify-between">
                 <h1 class="text-[20px] font-[700] text-[#111111]" style="font-family: 'Manrope', sans-serif;">Bookshelf</h1>
+            <div class="flex items-center gap-2">
+                <Link v-if="can('books.manage')" :href="route('books.create')" class="rounded-[8px] border border-[#e5e7eb] px-4 py-2 text-[13px] font-[600] text-[#374151] hover:bg-[#f8f9fa]">
+                    New Book
+                </Link>
                 <Link :href="route('wiki.import')" data-page-tour="page-actions" class="rounded-[8px] bg-[#111111] px-4 py-2 text-[13px] font-[600] text-white hover:bg-[#242424]">
                     Import MD/HTML
                 </Link>
+            </div>
             </div>
         </template>
 

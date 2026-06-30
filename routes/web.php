@@ -115,16 +115,23 @@ Route::middleware(['auth', 'verified', 'active', 'tenant'])->group(function () {
 
     Route::middleware(['permission:books.view', 'plan:books'])->group(function () {
         Route::get('/books', [BookController::class, 'index'])->name('books.index');
-        Route::get('/books/{book:slug}', [BookController::class, 'show'])->name('books.show');
     });
 
     Route::middleware(['permission:books.manage', 'plan:books'])->group(function () {
+        Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
+        Route::post('/books', [BookController::class, 'store'])->name('books.store');
+        Route::get('/books/{book:slug}/edit', [BookController::class, 'edit'])->name('books.edit');
+        Route::put('/books/{book:slug}', [BookController::class, 'update'])->name('books.update');
         Route::patch('/books/{book:slug}/sharing', [BookController::class, 'updateSharing'])->name('books.sharing');
         Route::get('/books/{book:slug}/export', [BookController::class, 'export'])->name('books.export');
         Route::get('/books/{book:slug}/export/static', [BookController::class, 'exportStatic'])->name('books.export.static');
         Route::delete('/books/{book:slug}', [BookController::class, 'destroy'])->name('books.destroy');
         Route::post('/books/{book:slug}/pages', [BookController::class, 'attachPages'])->name('books.pages.attach');
         Route::post('/books/{book:slug}/pages/{page}/move', [BookController::class, 'movePage'])->name('books.pages.move');
+    });
+
+    Route::middleware(['permission:books.view', 'plan:books'])->group(function () {
+        Route::get('/books/{book:slug}', [BookController::class, 'show'])->name('books.show');
     });
 
     Route::middleware(['permission:wiki.export.static', 'plan:wiki.export'])->group(function () {
