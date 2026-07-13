@@ -17,16 +17,9 @@ class TenantResolver
             return $this->ensureAccessible($request, $tenant);
         }
 
-        // Central domain (e.g. opswiki.example.com): always use the default workspace.
-        // Prevents stale session / extra empty signup workspaces from hiding legacy data.
-        if ($this->isCentralHost($request->getHost())) {
-            if ($default = $this->defaultTenant()) {
-                if ($this->canAccess($request->user(), $default)) {
-                    return $default;
-                }
-            }
-        }
-
+        // Respect the user's session-selected tenant first.
+        // Previously this ran after the central-host default fallback,
+        // which locked every user into the default workspace.
         if ($tenantId = $request->session()->get('tenant_id')) {
             $sessionTenant = Tenant::find($tenantId);
 
@@ -36,16 +29,29 @@ class TenantResolver
         }
 
         if ($user = $request->user()) {
+            // Let the user's own membership take priority.
+            // Skip the default workspace unless the user has no other memberships.
+            $ownTenants = $user->tenants()
+                ->where('tenants.slug', '!=', config('saas.default_tenant_slug'))
+                ->orderBy('tenant_user.id')
+                ->get();
+
+            if ($ownTenants->isNotEmpty()) {
+                return $ownTenants->first();
+            }
+
             $default = $this->defaultTenant();
 
             if ($default && $user->tenants()->where('tenants.id', $default->id)->exists()) {
                 return $default;
             }
+        }
 
-            $membership = $user->tenants()->orderBy('tenant_user.id')->first();
-
-            if ($membership) {
-                return $membership;
+        // Central domain fallback: only for unauthenticated visitors or
+        // users with no membership at all.
+        if ($this->isCentralHost($request->getHost())) {
+            if ($default = $this->defaultTenant()) {
+                return $default;
             }
         }
 

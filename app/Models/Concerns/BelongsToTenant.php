@@ -16,14 +16,7 @@ trait BelongsToTenant
             $table = $builder->getModel()->getTable();
 
             if ($tenantId) {
-                $builder->where(function (Builder $query) use ($table, $tenantId) {
-                    $query->where("{$table}.tenant_id", $tenantId);
-
-                    // Legacy rows created before tenant backfill (default workspace only).
-                    if ($tenantId === static::resolveDefaultTenantId()) {
-                        $query->orWhereNull("{$table}.tenant_id");
-                    }
-                });
+                $builder->where("{$table}.tenant_id", $tenantId);
             } else {
                 $builder->whereRaw('0 = 1');
             }
@@ -34,27 +27,6 @@ trait BelongsToTenant
                 $model->setAttribute('tenant_id', TenantContext::id());
             }
         });
-    }
-
-    private static function resolveDefaultTenantId(): ?int
-    {
-        static $tenantId = null;
-        static $resolved = false;
-
-        if ($resolved) {
-            return $tenantId;
-        }
-
-        $resolved = true;
-        $slug = config('saas.default_tenant_slug');
-
-        if (! $slug) {
-            return null;
-        }
-
-        $tenantId = Tenant::query()->where('slug', $slug)->value('id');
-
-        return $tenantId ? (int) $tenantId : null;
     }
 
     public function tenant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
